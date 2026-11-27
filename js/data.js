@@ -1,5 +1,5 @@
 // 옷라인 앱 데이터. 화면, 그림, 3D 가 모두 이 id 를 씀 (DESIGN.md 참고)
-// 가격은 "옷라인 표준가" 예시. 바지 기장 12,000원만 2023년 서울 수선집 기사 근거, 안감 교체 50,000원은 수선업 기사(5만~8만원) 하단
+// 가격은 "옷라인 표준가". 11/27부터 모두의수선 공식 가격표(ref/모두의수선_가격표_1127.md)를 따름. 그 표에 없는 항목만 예시, 안감 교체 50,000원은 수선업 기사(5만~8만원) 하단
 
 export const CATEGORIES = [
   { id: 'pants',  name: '바지',     subs: ['청바지', '슬랙스', '면바지', '반바지', '트레이닝'], fit3d: true },
@@ -48,64 +48,71 @@ export const SAMPLE_MEASURE = {
 
 // 수선 항목. group: fit(핏, 사이즈 수선) / repair(기타 수선, 손상 복원)
 // changes: 이 항목이 바꾸는 실측 칸. preview: AI 핏 단계에서 쓰는 미리보기 종류
+// price = 옷라인 표준가. src: 'm' = 모두의수선 공식 가격표(ref/모두의수선_가격표_1127.md, 11/27 확인)를 그대로 씀, ref = 그 표의 항목 이름
+//   src 가 없으면 그 표에 없는 항목이라 옷라인 예시 가격 ('news' = 수선업 기사 근거). sub = 세부 종류별 다른 값 (청바지, 코트)
 export const ITEMS = {
   pants: [
-    { id: 'hem',      group: 'fit', name: '기장 줄임',       price: 12000, changes: ['len'],    preview: '3d' },
-    { id: 'hemW',     group: 'fit', name: '밑단 통 줄임',     price: 10000, changes: ['hemH'],   preview: '3d' },
-    { id: 'taper',    group: 'fit', name: '통 줄임 (허벅지부터)', price: 15000, changes: ['thighH', 'hemH'], preview: '3d' },
-    { id: 'waistIn',  group: 'fit', name: '허리 줄임',       price: 15000, changes: ['waistH'], preview: '3d' },
+    { id: 'hem',      group: 'fit', name: '기장 줄임',       price: 8000,  sub: { '청바지': 13000 }, src: 'm', ref: '기장 줄임 기본형', changes: ['len'],    preview: '3d' },
+    { id: 'hemW',     group: 'fit', name: '밑단 통 줄임',     price: 18000, sub: { '청바지': 20000 }, src: 'm', ref: '전체통 줄임 발목', changes: ['hemH'],   preview: '3d' },
+    { id: 'taper',    group: 'fit', name: '통 줄임 (허벅지부터)', price: 18000, sub: { '청바지': 20000 }, src: 'm', ref: '전체통 줄임 전체', changes: ['thighH', 'hemH'], preview: '3d' },
+    { id: 'waistIn',  group: 'fit', name: '허리 줄임',       price: 18000, sub: { '청바지': 20000 }, src: 'm', ref: '허리/힙 줄임 허리', changes: ['waistH'], preview: '3d' },
     { id: 'waistOut', group: 'fit', name: '허리 늘림',       price: 18000, changes: ['waistH'], preview: '3d' },
-    { id: 'zipper',   group: 'repair', name: '지퍼 교체',     price: 12000 },
-    { id: 'button',   group: 'repair', name: '단추 달기',     price: 3000 },
-    { id: 'hole',     group: 'repair', name: '찢어짐/구멍 수선', price: 8000 },
-    { id: 'hemFix',   group: 'repair', name: '밑단 뜯어짐',   price: 5000 },
-    { id: 'pocket',   group: 'repair', name: '주머니 수선',   price: 8000 },
+    { id: 'zipper',   group: 'repair', name: '지퍼 교체',     price: 15000, src: 'm', ref: '지퍼교체 (YKK 20,000)' },
+    { id: 'button',   group: 'repair', name: '단추 달기',     price: 1000,  src: 'm', ref: '단추달음' },
+    { id: 'hole',     group: 'repair', name: '찢어짐/구멍 수선', price: 8000, src: 'm', ref: '누빔수선' },
+    { id: 'hemFix',   group: 'repair', name: '밑단 뜯어짐',   price: 4000,  src: 'm', ref: '재박음질' },
+    { id: 'pocket',   group: 'repair', name: '주머니 수선',   price: 8000,  src: 'm', ref: '주머니 막음' },
   ],
   skirt: [
-    { id: 'hem',     group: 'fit', name: '기장 줄임', price: 12000, changes: ['len'],    preview: '2d' },
-    { id: 'waistIn', group: 'fit', name: '허리 줄임', price: 15000, changes: ['waistH'], preview: '2d' },
-    { id: 'sideIn',  group: 'fit', name: '옆선 줄임', price: 12000, changes: ['hipH', 'hemH'], preview: '2d' },
-    { id: 'zipper',  group: 'repair', name: '지퍼 교체',   price: 12000 },
-    { id: 'hook',    group: 'repair', name: '후크/단추',   price: 3000 },
+    { id: 'hem',     group: 'fit', name: '기장 줄임', price: 18000, src: 'm', ref: '기장 줄임 기본형 (통넓음 21,000)', changes: ['len'],    preview: '2d' },
+    { id: 'waistIn', group: 'fit', name: '허리 줄임', price: 18000, src: 'm', ref: '허리/힙 줄임', changes: ['waistH'], preview: '2d' },
+    { id: 'sideIn',  group: 'fit', name: '옆선 줄임', price: 18000, src: 'm', ref: '전체통 줄임', changes: ['hipH', 'hemH'], preview: '2d' },
+    { id: 'zipper',  group: 'repair', name: '지퍼 교체',   price: 15000, src: 'm', ref: '지퍼교체 (YKK 20,000)' },
+    { id: 'hook',    group: 'repair', name: '후크/단추',   price: 5000,  src: 'm', ref: '걸고리 달음 (단추는 1,000)' },
     { id: 'lining',  group: 'repair', name: '안감 수선',   price: 15000 },
-    { id: 'hole',    group: 'repair', name: '찢어짐/구멍 수선', price: 8000 },
+    { id: 'hole',    group: 'repair', name: '찢어짐/구멍 수선', price: 8000, src: 'm', ref: '누빔수선' },
   ],
   tee: [
-    { id: 'hem',     group: 'fit', name: '총장 줄임',     price: 10000, changes: ['len'],    preview: '2d' },
-    { id: 'sleeve',  group: 'fit', name: '소매 기장 줄임', price: 10000, changes: ['sleeve'], preview: '2d' },
-    { id: 'chestIn', group: 'fit', name: '품 줄임 (옆선)', price: 15000, changes: ['chestH'], preview: '2d' },
-    { id: 'hole',    group: 'repair', name: '찢어짐/구멍 수선', price: 8000 },
+    { id: 'hem',     group: 'fit', name: '총장 줄임',     price: 13000, src: 'm', ref: '총기장 줄임 기본형 (시보리 15,000)', changes: ['len'],    preview: '2d' },
+    { id: 'sleeve',  group: 'fit', name: '소매 기장 줄임', price: 10000, src: 'm', ref: '소매기장 줄임 기본형 (시보리 13,000)', changes: ['sleeve'], preview: '2d' },
+    { id: 'chestIn', group: 'fit', name: '품 줄임 (옆선)', price: 10000, src: 'm', ref: '전체품 줄임', changes: ['chestH'], preview: '2d' },
+    { id: 'hole',    group: 'repair', name: '찢어짐/구멍 수선', price: 8000, src: 'm', ref: '누빔수선' },
     { id: 'neck',    group: 'repair', name: '목 늘어남 복원', price: 10000 },
-    { id: 'seam',    group: 'repair', name: '박음질 터짐',   price: 5000 },
+    { id: 'seam',    group: 'repair', name: '박음질 터짐',   price: 4000,  src: 'm', ref: '재박음질' },
   ],
   shirt: [
-    { id: 'sleeve',   group: 'fit', name: '소매 기장 줄임', price: 15000, changes: ['sleeve'],   preview: '2d' },
-    { id: 'hem',      group: 'fit', name: '총장 줄임',     price: 12000, changes: ['len'],      preview: '2d' },
-    { id: 'chestIn',  group: 'fit', name: '품 줄임',       price: 15000, changes: ['chestH'],   preview: '2d' },
-    { id: 'shoulder', group: 'fit', name: '어깨 줄임',     price: 25000, changes: ['shoulder'], preview: '2d' },
-    { id: 'button',   group: 'repair', name: '단추 달기',   price: 3000 },
+    { id: 'sleeve',   group: 'fit', name: '소매 기장 줄임', price: 20000, src: 'm', ref: '소매기장 줄임', changes: ['sleeve'],   preview: '2d' },
+    { id: 'hem',      group: 'fit', name: '총장 줄임',     price: 15000, src: 'm', ref: '총기장 줄임', changes: ['len'],      preview: '2d' },
+    { id: 'chestIn',  group: 'fit', name: '품 줄임',       price: 15000, src: 'm', ref: '전체품 줄임 전체 (가슴만 18,000)', changes: ['chestH'],   preview: '2d' },
+    { id: 'shoulder', group: 'fit', name: '어깨 줄임',     price: 18000, src: 'm', ref: '어깨길이 줄임', changes: ['shoulder'], preview: '2d' },
+    { id: 'button',   group: 'repair', name: '단추 달기',   price: 1000,  src: 'm', ref: '단추달음' },
     { id: 'collar',   group: 'repair', name: '칼라 교체',   price: 20000 },
-    { id: 'hole',     group: 'repair', name: '찢어짐/구멍 수선', price: 8000 },
+    { id: 'hole',     group: 'repair', name: '찢어짐/구멍 수선', price: 8000, src: 'm', ref: '누빔수선' },
   ],
   dress: [
-    { id: 'hem',     group: 'fit', name: '기장 줄임',     price: 15000, changes: ['len'],    preview: '2d' },
-    { id: 'waistIn', group: 'fit', name: '허리/품 줄임',   price: 18000, changes: ['waistH', 'chestH'], preview: '2d' },
+    { id: 'hem',     group: 'fit', name: '기장 줄임',     price: 15000, src: 'm', ref: '총기장 줄임', changes: ['len'],    preview: '2d' },
+    { id: 'waistIn', group: 'fit', name: '허리/품 줄임',   price: 10000, src: 'm', ref: '전체품 줄임', changes: ['waistH', 'chestH'], preview: '2d' },
     { id: 'strap',   group: 'fit', name: '어깨끈 길이',   price: 8000,  changes: ['shoulder'], preview: '2d' },
-    { id: 'zipper',  group: 'repair', name: '지퍼 교체',   price: 15000 },
+    { id: 'zipper',  group: 'repair', name: '지퍼 교체',   price: 15000, src: 'm', ref: '지퍼교체 (YKK 20,000)' },
     { id: 'lining',  group: 'repair', name: '안감 수선',   price: 15000 },
-    { id: 'hole',    group: 'repair', name: '찢어짐/구멍 수선', price: 8000 },
+    { id: 'hole',    group: 'repair', name: '찢어짐/구멍 수선', price: 8000, src: 'm', ref: '누빔수선' },
   ],
   jacket: [
-    { id: 'sleeve',    group: 'fit', name: '소매 기장 줄임', price: 20000, changes: ['sleeve'],   preview: '2d' },
-    { id: 'hem',       group: 'fit', name: '총장 줄임',     price: 25000, changes: ['len'],      preview: '2d' },
-    { id: 'chestIn',   group: 'fit', name: '품 줄임',       price: 25000, changes: ['chestH'],   preview: '2d' },
+    { id: 'sleeve',    group: 'fit', name: '소매 기장 줄임', price: 17000, src: 'm', ref: '소매기장 줄임 기본형 (단추구멍형 27,000)', changes: ['sleeve'],   preview: '2d' },
+    { id: 'hem',       group: 'fit', name: '총장 줄임',     price: 30000, sub: { '코트': 40000 }, src: 'm', ref: '총기장 줄임 기본형 (코트 40,000)', changes: ['len'],      preview: '2d' },
+    { id: 'chestIn',   group: 'fit', name: '품 줄임',       price: 50000, src: 'm', ref: '전체품 줄임 전체 (가슴만 30,000)', changes: ['chestH'],   preview: '2d' },
     { id: 'shoulder',  group: 'fit', name: '어깨 줄임',     price: 35000, changes: ['shoulder'], preview: '2d' },
-    { id: 'liningNew', group: 'repair', name: '안감 교체',   price: 50000 },
-    { id: 'button',    group: 'repair', name: '단추 교체',   price: 5000 },
-    { id: 'zipper',    group: 'repair', name: '지퍼 교체',   price: 18000 },
-    { id: 'hole',      group: 'repair', name: '찢어짐/구멍 수선', price: 15000 },
+    { id: 'liningNew', group: 'repair', name: '안감 교체',   price: 50000, src: 'news' },
+    { id: 'button',    group: 'repair', name: '단추 교체',   price: 3000,  src: 'm', ref: '단추달음 (아우터)' },
+    { id: 'zipper',    group: 'repair', name: '지퍼 교체',   price: 20000, src: 'm', ref: '지퍼교체 (YKK 25,000, 패딩 30,000)' },
+    { id: 'hole',      group: 'repair', name: '찢어짐/구멍 수선', price: 8000, src: 'm', ref: '누빔수선' },
   ],
 };
+// 세부 종류에 따라 다른 값 (청바지 기장 13,000, 코트 총장 40,000)
+export const priceOf = (it, subName) => (it.sub && subName && it.sub[subName] != null) ? it.sub[subName] : it.price;
+// 바지 기장과 밑단 통을 같이 고르면 묶음 값 (모두의수선 '기장 + 밑통 줄임')
+export const PANTS_HEM_COMBO = { name: '기장 + 밑단 통 줄임', price: 18000, sub: { '청바지': 23000 } };
+export const PRICE_SRC = '모두의수선 공식 가격표 (modo.io.kr, 11/27 확인)';
 
 // 손상 부위 (기타 수선 화면에서 옷 그림 위를 누름). garments.js 의 damageMap 이 같은 id 로 그림
 export const DAMAGE_ZONES = {
@@ -149,7 +156,7 @@ export const FIT2D_PRESETS = {
 // 세부 요청에서 묻는 추가 질문 (SOJO 처럼). when: 이 수선 항목이 있으면 물음. 값 → 추가금
 export const OPTIONS = [
   { id: 'hemFinish', when: ['hem'], cats: ['pants'], q: '밑단 마감은 어떻게 할까요?',
-    choices: [{ v: 'basic', t: '기본 밑단', add: 0 }, { v: 'original', t: '원래 밑단 살리기', sub: '청바지 워싱 밑단 그대로', add: 5000 }, { v: 'cuff', t: '접어 올림 (카브라)', add: 3000 }, { v: 'hand', t: '손바느질 마감', sub: '겉에 바늘땀이 안 보여요', add: 3000 }] },
+    choices: [{ v: 'basic', t: '기본 밑단', add: 0 }, { v: 'original', t: '원래 밑단 살리기', sub: '청바지 워싱 밑단 그대로', add: 2000 }, { v: 'cuff', t: '접어 올림 (카브라)', add: 5000 }, { v: 'hand', t: '손바느질 마감', sub: '겉에 바늘땀이 안 보여요', add: 3000 }] }, // 단살림 +2,000(청바지 15,000−13,000), 카브라 +5,000(바지 13,000−8,000), 손바느질은 예시
   { id: 'lining', when: ['hem', 'waistIn', 'sideIn', 'chestIn', 'sleeve', 'shoulder'], cats: ['pants', 'skirt', 'dress', 'jacket'], q: '옷에 안감이 있나요?',
     choices: [{ v: 'no', t: '없어요', add: 0 }, { v: 'yes', t: '있어요', sub: '안감도 같이 수선해요', add: 5000 }] },
   { id: 'detail', when: ['hem', 'sleeve'], cats: ['skirt', 'dress', 'shirt', 'jacket', 'pants'], q: '밑단이나 소매 끝에 장식이 있나요?',

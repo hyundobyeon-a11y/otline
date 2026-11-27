@@ -2,7 +2,7 @@
 import { screen, go, back, refresh, backTo, current } from '../router.js';
 import { ic, esc, sheet, toast, tapeProgress, keepFocus } from '../ui.js';
 import { state, save, curG, setCat, addGarment, fitItems, repairItems, hasFit, hasRepair, initAfter, changes, applicableOptions, quote, garmentLines } from '../store.js';
-import { CATEGORIES, ITEMS, FIELDS, CAT_FIELDS, PANTS_PRESETS, FIT2D_PRESETS, METHODS, DAMAGE_ZONES, DAMAGE_TYPES, SUB_PRESET, GARMENT_TRAITS, SAMPLE_PRODUCTS, traitChoices, sizeChart, catOf, itemOf, won, cm, pantsLenAtFloor } from '../data.js';
+import { CATEGORIES, ITEMS, FIELDS, CAT_FIELDS, PANTS_PRESETS, FIT2D_PRESETS, METHODS, DAMAGE_ZONES, DAMAGE_TYPES, SUB_PRESET, GARMENT_TRAITS, SAMPLE_PRODUCTS, traitChoices, sizeChart, priceOf, PANTS_HEM_COMBO, catOf, itemOf, won, cm, pantsLenAtFloor } from '../data.js';
 import { catIcon, sketch, damageMap, fit2d, fit2dPreset, workSample } from '../garments.js';
 
 export const snaps = new Map(); // 3D After 캡처 (저장 안 함, 화면 사이에서만)
@@ -72,16 +72,17 @@ screen('req-items', {
   render() {
     if (!guard()) return '';
     const g = curG(), list = ITEMS[g.cat] || [];
-    const row = it => `<button class="check" data-item="${it.id}" aria-pressed="${g.items.includes(it.id)}"><span class="box">${ic('check')}</span><span>${esc(it.name)}</span><span class="p">${won(it.price)}~</span></button>`;
+    const row = it => `<button class="check" data-item="${it.id}" aria-pressed="${g.items.includes(it.id)}"><span class="box">${ic('check')}</span><span>${esc(it.name)}</span><span class="p">${won(priceOf(it, g.sub))}~</span></button>`;
     const fit = hasFit(g), rep = hasRepair(g);
     const next = !g.items.length ? '수선할 부분을 골라주세요' : fit ? '다음: 실측 사이즈 입력' : '다음: 손상 부위 알려주기';
     return `${bar('수선 항목 선택')}
     <main class="content">
       ${tapeProgress(1, TOTAL, '수선 항목')}
       <div class="mini-sum"><span class="gi">${catIcon(g.cat)}</span><span class="grow"><span class="xs muted">의류 ${gNo()}</span><br><b>${esc(catOf(g.cat).name)} / ${esc(g.sub || '')}</b>${g.name ? ` <span class="small muted">${esc(g.name)}</span>` : ''}</span><button class="btn xs line" data-back>변경</button></div>
-      <div class="qhead"><h2>어떤 부분을 수선할까요?</h2><p>여러 항목을 함께 고를 수 있어요</p></div>
+      <div class="qhead"><h2>어떤 부분을 수선할까요?</h2><p>여러 항목을 함께 고를 수 있어요 <button class="link strong" data-go="prices">${ic('receipt', 'ic-16')}가격표 보기</button></p></div>
       <section class="sec"><div class="group-h">${ic('ruler', 'ic-16')}핏, 사이즈 수선 <span class="tag indigo">${catOf(g.cat).fit3d ? '3D' : 'AI'} 핏 미리보기</span></div>
-        <div class="opts">${list.filter(i => i.group === 'fit').map(row).join('')}</div></section>
+        <div class="opts">${list.filter(i => i.group === 'fit').map(row).join('')}</div>
+        ${g.cat === 'pants' ? `<p class="note">${ic('info', 'ic-16')} 기장과 밑단 통을 같이 고르면 ${PANTS_HEM_COMBO.name} 묶음 ${won(priceOf(PANTS_HEM_COMBO, g.sub))}이에요.</p>` : ''}</section>
       <section class="sec"><div class="group-h">${ic('wrench', 'ic-16')}기타 수선, 손상 복원</div>
         <div class="opts">${list.filter(i => i.group === 'repair').map(row).join('')}</div>
         <p class="note">${ic('info', 'ic-16')} 기타 수선만 고르면 핏 미리보기 없이 손상 부위와 사진으로 바로 요청서를 만들어요.</p></section>

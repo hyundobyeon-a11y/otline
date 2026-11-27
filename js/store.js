@@ -1,5 +1,5 @@
 // 앱 상태. 보는 사람 브라우저(localStorage)에만 저장. 못 쓰면 메모리로만 돎
-import { SHOPS, ITEMS, OPTIONS, CAT_FIELDS, SAMPLE_MEASURE, AREAS, ORDER_STEPS, FEES, REVIEWS, shopOf, itemOf, catOf, pantsLenAtFloor, PANTS_PRESETS, SUB_PRESET } from './data.js';
+import { SHOPS, ITEMS, OPTIONS, CAT_FIELDS, SAMPLE_MEASURE, AREAS, ORDER_STEPS, FEES, REVIEWS, shopOf, itemOf, catOf, pantsLenAtFloor, PANTS_PRESETS, SUB_PRESET, priceOf, PANTS_HEM_COMBO } from './data.js';
 
 const KEY = 'otline-app-v5'; // 11/27 수선집 이름을 실제 가게로 바꾸며 v5 (옛 저장값에 남은 옛 가게 이름 알림, 채팅을 안 읽음). v4: 바지 기장 이름 복숭아뼈 기준
 const listeners = new Set();
@@ -123,10 +123,14 @@ export function applicableOptions(g) {
 }
 export function garmentLines(g, shop = null) {
   const lines = [];
+  // 바지 기장 + 밑단 통을 같이 하면 한 줄 묶음 값 (모두의수선 '기장 + 밑통 줄임')
+  const combo = g.cat === 'pants' && g.items.includes('hem') && g.items.includes('hemW');
   for (const id of g.items) {
+    if (combo && id === 'hemW') continue;
     const it = itemOf(g.cat, id); if (!it) continue;
     const mk = shop ? (shop.markup[it.group] || 0) : 0;
-    lines.push({ t: it.name, std: it.price, mk, p: it.price + mk });
+    const std = combo && id === 'hem' ? priceOf(PANTS_HEM_COMBO, g.sub) : priceOf(it, g.sub);
+    lines.push({ t: combo && id === 'hem' ? PANTS_HEM_COMBO.name : it.name, std, mk, p: std + mk });
   }
   for (const o of applicableOptions(g)) {
     const v = g.options[o.id]; const c = o.choices.find(x => x.v === v);

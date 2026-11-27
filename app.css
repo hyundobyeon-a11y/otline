@@ -747,3 +747,4 @@ table.mt.sz tr.on td{color:var(--tint);font-weight:700}
 .demo-note{display:flex;gap:8px;align-items:flex-start;margin:0;padding:9px 12px;border-radius:14px;background:var(--tape-50);color:var(--tape-text);font-size:12.5px;line-height:1.45;font-weight:500}
 .demo-note svg.lucide{flex:none;margin-top:1px}
 .shop-head .demo-note{margin-top:2px}
+.plist .opt .add{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}

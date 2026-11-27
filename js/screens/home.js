@@ -1,7 +1,7 @@
 import { screen, go, refresh } from '../router.js';
 import { ic, esc, stars, sheet, toast, appbar } from '../ui.js';
 import { state, save, area, distM, fmtDist, isLiked, toggleLike, startDraft, activeOrders, orderSteps, unreadAlerts, shopRating, isOpen } from '../store.js';
-import { SHOPS, AREAS, ITEMS, CATEGORIES, DEMO_NOTE, catOf, shopOf, won } from '../data.js';
+import { SHOPS, AREAS, ITEMS, CATEGORIES, OPTIONS, DEMO_NOTE, PRICE_SRC, PANTS_HEM_COMBO, priceOf, catOf, shopOf, won } from '../data.js';
 export const demoNote = () => `<p class="demo-note">${ic('info', 'ic-16')}<span>${DEMO_NOTE}</span></p>`;
 import { catIcon, shopHero } from '../garments.js';
 import { createMap } from '../map.js';
@@ -78,6 +78,7 @@ screen('home', {
       <section class="quick" aria-label="자주 맡기는 수선">
         ${QUICK.map((q, i) => `<button data-quick="${i}"><span class="gi">${catIcon(q.cat)}</span>${q.t}</button>`).join('')}
       </section>
+      <button class="notice tap" data-go="prices">${ic('receipt')}<span class="grow"><b style="color:var(--ink)">수선 가격표</b> 바지 기장 ${won(ITEMS.pants[0].price)}부터, 맡기기 전에 값을 먼저 봐요</span>${ic('chevron-right', 'ic-16')}</button>
 
       <section class="sec">
         <div class="sec-h"><h2>내 주변 수선집</h2><span class="muted small">${esc(a.full)}</span></div>
@@ -144,6 +145,40 @@ function areaSheet() {
 
 // ───────── 검색 ─────────
 let q = '';
+// ───────── 수선 가격표 (11/27, 모두의수선 공식 가격표를 옷라인 표준가로 씀) ─────────
+const PRICE_TABS = [['pants', '바지'], ['jeans', '청바지'], ['skirt', '치마'], ['tee', '티셔츠/맨투맨'], ['shirt', '셔츠/블라우스'], ['dress', '원피스'], ['jacket', '재킷/코트']];
+let priceTab = 'pants';
+screen('prices', {
+  render() {
+    const cat = priceTab === 'jeans' ? 'pants' : priceTab, sub = priceTab === 'jeans' ? '청바지' : null;
+    // 작은 글씨 = 그 표의 항목 이름 (코트처럼 다른 값은 ref 에 같이 적혀 있음)
+    const row = it => `<button class="opt" data-item="${cat}:${it.id}"><span><b>${esc(it.name)}</b><small>${it.src === 'm' ? esc(it.ref) : it.src === 'news' ? '수선업 기사 근거 (5만~8만원 하단)' : '옷라인 예시 가격'}</small></span><span class="add">${won(priceOf(it, sub))}~</span></button>`;
+    const opts = OPTIONS.filter(o => o.cats.includes(cat)).flatMap(o => o.choices.filter(c => c.add).map(c => ({ q: o.q, ...c })));
+    return `${appbar('수선 가격표')}
+    <main class="content">
+      <div class="qhead"><h2>옷라인 표준 가격표</h2><p>수선집마다 추가금이 조금씩 붙을 수 있어요. 최종 금액은 수선사가 옷을 본 뒤 정해져요</p></div>
+      <div class="chips">${PRICE_TABS.map(([k, t]) => `<button class="chip" data-ptab="${k}" aria-pressed="${priceTab === k}">${t}</button>`).join('')}</div>
+      <section class="sec"><div class="group-h">${ic('ruler', 'ic-16')}핏, 사이즈 수선 <small>누르면 바로 요청서를 만들어요</small></div>
+        <div class="opts plist">${ITEMS[cat].filter(i => i.group === 'fit').map(row).join('')}</div>
+        ${cat === 'pants' ? `<p class="note">${ic('info', 'ic-16')} 기장과 밑단 통을 같이 하면 ${PANTS_HEM_COMBO.name} ${won(priceOf(PANTS_HEM_COMBO, sub))}이에요.</p>` : ''}</section>
+      <section class="sec"><div class="group-h">${ic('wrench', 'ic-16')}기타 수선, 손상 복원</div>
+        <div class="opts plist">${ITEMS[cat].filter(i => i.group === 'repair').map(row).join('')}</div></section>
+      ${opts.length ? `<section class="sec"><div class="group-h">${ic('plus', 'ic-16')}추가 옵션 <small>세부 요청에서 고르면 붙어요</small></div>
+        <div class="opts">${opts.map(o => `<div class="opt" style="cursor:default"><span><b>${esc(o.t)}</b><small>${esc(o.q)}</small></span><span class="add">+${won(o.add)}</span></div>`).join('')}</div></section>` : ''}
+      <p class="note">${ic('book-open', 'ic-16')} 가격 근거: ${esc(PRICE_SRC)}. '옷라인 예시 가격'이라고 적힌 항목은 그 표에 없어서 정한 예시예요.</p>
+    </main>`;
+  },
+  mount(el) {
+    el.addEventListener('click', e => {
+      const t = e.target.closest('[data-ptab]'); if (t) { priceTab = t.dataset.ptab; refresh(); return; }
+      const it = e.target.closest('[data-item]'); if (!it) return;
+      const [cat, id] = it.dataset.item.split(':');
+      const g = startDraft({ cat, items: [id] }); g.sub = priceTab === 'jeans' ? '청바지' : catOf(cat).subs[0]; save();
+      go('req-items');
+    });
+  },
+});
+
 screen('search', {
   render() {
     return `<header class="appbar" style="grid-template-columns:48px 1fr 8px">

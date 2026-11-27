@@ -48,6 +48,7 @@ screen('my', {
         <button class="btn sm primary" data-reorder="${last.id}" style="width:100%">같은 요청서로 다시 맡기기</button></section>` : ''}
       ${last ? `<section class="sec"><div class="sec-h"><h3>최근 완료된 수선</h3></div>${orderCard(last)}</section>` : ''}
       <div class="menu">
+        <button data-go="prices">${ic('receipt')}수선 가격표<span class="r">${ic('chevron-right', 'ic-16')}</span></button>
         <button data-go="closet">${ic('archive')}내 옷장과 저장된 치수<span class="r">${state.closet.length}벌 ${ic('chevron-right', 'ic-16')}</span></button>
         <button data-tab="orders">${ic('file-text')}지난 수선 요청서<span class="r">${state.orders.length} ${ic('chevron-right', 'ic-16')}</span></button>
         <button data-rvs>${ic('star')}내가 쓴 리뷰<span class="r">${state.myReviews.length} ${ic('chevron-right', 'ic-16')}</span></button>
@@ -58,7 +59,7 @@ screen('my', {
         <button data-theme>${ic('sun-moon')}화면 테마<span class="r">${document.documentElement.dataset.theme === 'dark' ? '다크' : document.documentElement.dataset.theme === 'light' ? '라이트' : '시스템'} ${ic('chevron-right', 'ic-16')}</span></button>
         <button data-reset>${ic('rotate-ccw')}데모 처음부터<span class="r">${ic('chevron-right', 'ic-16')}</span></button>
       </div>
-      <p class="note" style="text-align:center">옷라인 5조 프로토타입. 수선집, 별점, 후기는 가상이에요.</p>
+      <p class="note" style="text-align:center">옷라인 5조 프로토타입. 수선집은 이름과 주소만 실제이고, 별점, 후기는 예시예요.</p>
     </main>`;
   },
   mount(el) {
