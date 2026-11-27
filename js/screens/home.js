@@ -16,7 +16,7 @@ export function shopRow(s, { showPrice = true } = {}) {
         <button class="heart${isLiked(s.id) ? ' on' : ''}" data-like="${s.id}" aria-label="좋아요" aria-pressed="${isLiked(s.id)}">${ic('heart')}</button></div>
       <div class="dotsep">${stars(r.r, r.n)}<span>${fmtDist(d)}</span><span>${s.lead === 1 ? '내일 완료' : `${s.lead}일 소요`}</span><span class="${isOpen(s) ? 'open' : 'closed'}">${isOpen(s) ? '영업 중' : '영업 종료'}</span></div>
       ${showPrice ? `<div class="pr">${catOf(cat).name} ${it.name} <b>${won(it.price + s.markup.fit)}</b>~</div>` : ''}
-      <div class="tags">${s.tags.slice(0, 3).map(t => `<span class="tag${/할인|입점/.test(t) ? ' chalk' : /픽업/.test(t) ? ' indigo' : ''}">${esc(t)}</span>`).join('')}</div>
+      <div class="tags">${s.tags.slice(0, 3).map(t => `<span class="tag${/할인|입점/.test(t) ? ' chalk' : /픽업/.test(t) ? ' indigo' : ''}">${esc(t)}</span>`).join('')}${s.selfDelivery ? '<span class="tag ok">가게 직접 배달</span>' : ''}</div>
     </div></div>`;
 }
 export function wireShopRows(root, onChange) {

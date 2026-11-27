@@ -171,10 +171,11 @@ export const AREAS = [
 
 // 가상 수선집 (이름, 별점, 후기 모두 가상). markup = 표준가에 붙는 가게별 추가금(항목당)
 // photo = 표지 사진(img/, Unsplash 무료 사진, 실제 그 가게 사진 아님). 없으면 shopHero 가 그림을 그림
+// selfDelivery = 수선이 끝난 옷을 가게가 직접 배달함 (옷라인 배송과 따로). fee 배달비 예시, km 배달 거리. 11/27 팀 회의 결정, 표시만
 export const SHOPS = [
   { id: 's1', name: '한땀 수선실', x: 640, y: 500, photo: 'img/shop-s1.jpg', years: 22, rating: 4.9, reviews: 128, lead: 1,
     spec: ['pants'], tags: ['경력 22년', '바지 수선 전문', '픽업 가능'], markup: { fit: 1500, repair: 0 },
-    hours: [10, 19], closed: [0], pickup: true, today: true, hue: 222,
+    hours: [10, 19], closed: [0], pickup: true, today: true, hue: 222, selfDelivery: { fee: 2000, km: 2 },
     intro: '바지 기장, 허리, 통만 20년 넘게 했어요. 원래 밑단 살리기는 하루면 돼요.',
     addr: '성북구 참살이길 (가상)', phone: '0507-1***-2201' },
   { id: 's2', name: '보문 재봉소', x: 360, y: 720, photo: 'img/shop-s2.jpg', years: 15, rating: 4.8, reviews: 94, lead: 2,
@@ -199,7 +200,7 @@ export const SHOPS = [
     addr: '성북구 인촌로 (가상)', phone: '0507-1***-5528' },
   { id: 's6', name: '안암 세탁수선', x: 640, y: 780, photo: 'img/shop-s6.jpg', years: 18, rating: 4.3, reviews: 77, lead: 3,
     spec: ['shirt', 'tee'], tags: ['세탁 같이', '셔츠', '픽업 가능'], markup: { fit: 0, repair: 0 },
-    hours: [8, 20], closed: [0], pickup: true, today: false, hue: 190,
+    hours: [8, 20], closed: [0], pickup: true, today: false, hue: 190, selfDelivery: { fee: 0, km: 1.5 },
     intro: '세탁소와 같이 해요. 셔츠는 세탁, 다림질까지 한 번에 맡기실 수 있어요.',
     addr: '성북구 안암로 (가상)', phone: '0507-1***-8862' },
   { id: 's7', name: '바늘귀 수선실', x: 540, y: 690, photo: 'img/shop-s7.jpg', years: 6, rating: 4.8, reviews: 3, lead: 1, isNew: true,
@@ -245,7 +246,33 @@ export const ORDER_STEPS = [
   { id: 'received',  t: '수령 완료',  d: '옷을 받았어요' },
 ];
 
-export const FEES = { pickup: 3000, ship: { normal: 3000, fast: 5000 }, bundleRate: 0.05 };
+export const FEES = { pickup: 3000, ship: { normal: 3000, fast: 5000 }, bundleRate: 0.05 }; // 가게 직접 배달비는 SHOPS.selfDelivery.fee
+
+// ───────── 의류 정보 추가 (11/27 팀원 시안: 사진, 쇼핑몰 상품 링크, 의류 특성) ─────────
+// 의류 특성 칩. by = 의류마다 다른 보기, all = 모든 의류 같음
+export const GARMENT_TRAITS = [
+  { id: 'fit', label: '기존 핏', by: { pants: ['슬림', '스트레이트', '와이드'], skirt: ['H라인', 'A라인', '플레어'], tee: ['슬림', '레귤러', '오버핏'], shirt: ['슬림', '레귤러', '오버핏'], dress: ['슬림', '레귤러', '루즈'], jacket: ['슬림', '레귤러', '오버핏'] } },
+  { id: 'mat', label: '소재', by: { pants: ['데님', '면', '폴리 혼방', '기타'], skirt: ['면', '울', '폴리 혼방', '기타'], tee: ['면', '폴리 혼방', '기타'], shirt: ['면', '린넨', '폴리 혼방', '기타'], dress: ['면', '니트', '폴리 혼방', '기타'], jacket: ['울', '가죽', '폴리 혼방', '기타'] } },
+  { id: 'stretch', label: '신축성', all: ['없음', '약간', '높음', '모름'] },
+  { id: 'thick', label: '두께', all: ['얇음', '보통', '두꺼움', '모름'] },
+];
+export const traitChoices = (t, cat) => t.all || t.by[cat] || t.by.pants;
+// 상품 링크 흉내: 실제로 쇼핑몰을 읽지 않음. 불러오기를 누르면 의류 종류에 맞는 가상 상품과 사이즈별 실측표가 뜸
+export const SAMPLE_PRODUCTS = {
+  pants:  { name: '세미 와이드 슬랙스',     traits: { fit: '와이드', mat: '폴리 혼방', stretch: '약간', thick: '보통' } },
+  denim:  { name: '와이드 데님 팬츠',       traits: { fit: '와이드', mat: '데님', stretch: '없음', thick: '두꺼움' } },
+  skirt:  { name: 'A라인 미디 스커트',      traits: { fit: 'A라인', mat: '면', stretch: '없음', thick: '보통' } },
+  tee:    { name: '오버핏 코튼 반팔 티셔츠', traits: { fit: '오버핏', mat: '면', stretch: '약간', thick: '보통' } },
+  shirt:  { name: '옥스퍼드 레귤러 셔츠',   traits: { fit: '레귤러', mat: '면', stretch: '없음', thick: '보통' } },
+  dress:  { name: '셔츠 롱 원피스',         traits: { fit: '레귤러', mat: '면', stretch: '없음', thick: '얇음' } },
+  jacket: { name: '울 싱글 블레이저',       traits: { fit: '레귤러', mat: '울', stretch: '없음', thick: '두꺼움' } },
+};
+// 사이즈별 실측표: M = SAMPLE_MEASURE, 한 사이즈마다 이만큼 커짐
+const SIZE_STEP = { len: 1.5, waistH: 2, hipH: 2, thighH: 1, rise: 0.5, hemH: 0.5, shoulder: 1.5, chestH: 2.5, sleeve: 1 };
+export function sizeChart(cat, sex) {
+  const base = SAMPLE_MEASURE[sex][cat];
+  return ['S', 'M', 'L', 'XL'].map((sz, i) => ({ sz, m: Object.fromEntries(Object.entries(base).map(([f, v]) => [f, Math.round((v + (i - 1) * (SIZE_STEP[f] || 1)) * 2) / 2])) }));
+}
 
 export const won = n => (n < 0 ? '−' : '') + Math.abs(Math.round(n)).toLocaleString('ko-KR') + '원';
 export const cm = n => (Math.round(n * 2) / 2).toString().replace(/\.0$/, '') + 'cm';

@@ -2,7 +2,7 @@
 import { screen, go, back, refresh, backTo, current } from '../router.js';
 import { ic, esc, sheet, toast, tapeProgress, keepFocus } from '../ui.js';
 import { state, save, curG, setCat, addGarment, fitItems, repairItems, hasFit, hasRepair, initAfter, changes, applicableOptions, quote, garmentLines } from '../store.js';
-import { CATEGORIES, ITEMS, FIELDS, CAT_FIELDS, PANTS_PRESETS, FIT2D_PRESETS, METHODS, DAMAGE_ZONES, DAMAGE_TYPES, SUB_PRESET, catOf, itemOf, won, cm, pantsLenAtFloor } from '../data.js';
+import { CATEGORIES, ITEMS, FIELDS, CAT_FIELDS, PANTS_PRESETS, FIT2D_PRESETS, METHODS, DAMAGE_ZONES, DAMAGE_TYPES, SUB_PRESET, GARMENT_TRAITS, SAMPLE_PRODUCTS, traitChoices, sizeChart, catOf, itemOf, won, cm, pantsLenAtFloor } from '../data.js';
 import { catIcon, sketch, damageMap, fit2d, fit2dPreset, workSample } from '../garments.js';
 
 export const snaps = new Map(); // 3D After 캡처 (저장 안 함, 화면 사이에서만)
@@ -123,9 +123,10 @@ screen('req-measure', {
       </section>
       <section class="card sec">
         <div class="sec-h"><h3>맡길 의류 <span class="muted small" style="font-weight:500">${esc(gTitle(g))}</span></h3><button class="link strong" data-guide>${ic('ruler', 'ic-16')} 재는 법</button></div>
+        ${infoBox(g)}
         <div class="sketchbox" id="sk">${sketch(g.cat, { m: g.m, highlight: focusField && fields.includes(focusField) ? focusField : [...touched][0], labels: true })}</div>
         <div class="grid2">${fields.map(f => `<label class="field"><span>${FIELDS[f].label}${touched.has(f) ? ' <span class="tag yellow" style="height:18px">수선</span>' : ''}</span><span class="unit" data-u="cm"><input class="input${touched.has(f) ? ' hl' : ''}" type="number" inputmode="decimal" id="m-${f}" data-f="${f}" value="${g.m[f] ?? ''}" step="0.5"></span></label>`).join('')}</div>
-        <p class="note">단면은 옷을 바닥에 펼쳐 잰 한쪽 폭이에요. 쇼핑몰 상품 페이지의 실측 사이즈를 그대로 넣어도 돼요.</p>
+        <p class="note">${g.info?.applied && g.info.size ? `${esc(g.info.product.name)} ${g.info.size} 사이즈 실측을 넣었어요. 실제 옷과 다르면 고쳐 주세요. ` : ''}단면은 옷을 바닥에 펼쳐 잰 한쪽 폭이에요. 쇼핑몰 상품 페이지의 실측 사이즈를 그대로 넣어도 돼요.</p>
       </section>
     </main>
     <footer class="cta"><button class="btn primary" data-next>다음: 핏 미리보기</button></footer>`;
@@ -147,6 +148,7 @@ screen('req-measure', {
       const b = e.target.closest('button'); if (!b) return;
       if (b.dataset.sex) { state.body.sex = b.dataset.sex; if (b.dataset.sex === 'F' && state.body.height > 168) Object.assign(state.body, { height: 163, weight: 54, waist: 68, hip: 92, inseam: 74 }); if (b.dataset.sex === 'M' && state.body.height < 168) Object.assign(state.body, { height: 174, weight: 72, waist: 82, hip: 96, inseam: 79 }); save(); keepFocus(el, refresh); }
       else if (b.hasAttribute('data-guide')) guideSheet(g);
+      else if (b.dataset.info != null) openInfo(b.dataset.info);
       else if (b.hasAttribute('data-next')) { g.after = {}; initAfter(g); save(); go('req-fit'); }
     });
   },
@@ -218,6 +220,7 @@ screen('req-fit', {
         ${use3d ? '<div class="loading" id="ld">3D 모델 준비 중…</div>' : ''}
       </div>
       ${use3d ? `<div class="views-row">${[['front', '정면'], ['side', '옆'], ['back', '뒤'], ['hem', '밑단 확대']].map(([k, t], i) => `<button class="chip sm" data-view="${k}" aria-pressed="${i === 0}">${t}</button>`).join('')}</div><p class="note" style="text-align:center;margin-top:-10px">드래그하면 돌려볼 수 있어요</p>` : ''}
+      ${infoNote(g)}
       ${controls}
       <p class="note">${ic('info', 'ic-16')} 예상 핏이라 실제 수선 결과와 조금 다를 수 있어요.</p>
     </main>
@@ -278,9 +281,143 @@ screen('req-fit', {
         g.fitPreset[itId] = pid;
         el.querySelectorAll(`[data-p2^="${itId}:"]`).forEach(x => x.setAttribute('aria-pressed', x === b)); upd();
       } else if (b.dataset.view) { fit && fit.view(b.dataset.view); el.querySelectorAll('[data-view]').forEach(x => x.setAttribute('aria-pressed', x === b)); }
+      else if (b.dataset.info != null) openInfo(b.dataset.info);
       else if (b.hasAttribute('data-next')) { snap(); go('req-detail'); }
     });
     return () => { alive = false; cancelAnimationFrame(raf); if (fit) { snap(); fit.dispose(); } };
+  },
+});
+
+// ───────── STEP 2-1. 의류 정보 추가 (11/27 팀원 시안) ─────────
+// 사진 3칸, 쇼핑몰 상품 링크, 의류 특성. '적용하기'를 눌러야 g.info 에 들어감 (그전에는 wip 에서만 고침)
+// 상품 링크는 흉내만: 실제로 쇼핑몰을 읽지 않고 예시 상품과 사이즈별 실측표를 보여줌. 사이즈를 고르고 적용하면 실측 칸이 바뀜
+const INFO_SLOTS = ['정면', '후면', '착용 사진'];
+const blankInfo = () => ({ photos: [null, null, null], url: '', product: null, size: null, traits: {}, applied: false });
+let wip = null;
+function openInfo(focus) { wip = null; go('req-info', focus || undefined); }
+const hasInfo = I => !!I && (I.photos.some(Boolean) || !!I.product || Object.keys(I.traits).length > 0);
+const traitTxt = (id, v) => v === '모름' ? null : id === 'stretch' ? `신축성 ${v}` : id === 'thick' ? `두께 ${v}` : v;
+function infoParts(g) {
+  const I = g.info; if (!I || !I.applied) return null;
+  const n = I.photos.filter(Boolean).length;
+  return { n, product: I.product ? `${I.product.name}${I.size ? ` ${I.size}` : ''}` : null,
+    traits: GARMENT_TRAITS.map(t => I.traits[t.id] && traitTxt(t.id, I.traits[t.id])).filter(Boolean) };
+}
+export function infoText(g) {
+  const p = infoParts(g); if (!p) return '';
+  return [p.n ? `사진 ${p.n}장` : null, p.product ? `상품 링크(${p.product})` : null, ...p.traits].filter(Boolean).join(', ');
+}
+function infoBox(g) {
+  const p = infoParts(g);
+  if (!p) return `<div class="ginfo">
+    <div class="ginfo-h">${ic('sparkles', 'ic-16')}<b>의류 정보 추가하기</b></div>
+    <p>실제 옷의 정보를 추가하면 핏을 더욱 구체적으로 표현할 수 있어요.</p>
+    <div class="grid2"><button class="btn sm" data-info="photo">${ic('camera', 'ic-16')}의류 사진 첨부</button><button class="btn sm" data-info="link">${ic('link', 'ic-16')}상품 링크 입력</button></div></div>`;
+  const ph = g.info.photos.filter(Boolean);
+  return `<div class="ginfo on">
+    <div class="ginfo-h">${ic('check-circle-2', 'ic-16')}<b>의류 정보 적용됨</b><button class="link strong" data-info="">수정 ${ic('chevron-right', 'ic-16')}</button></div>
+    ${ph.length ? `<div class="thumbs">${ph.map(x => `<img src="${x}" alt="">`).join('')}<span class="xs muted">사진 ${ph.length}장</span></div>` : ''}
+    ${p.product ? `<div class="small">${ic('link', 'ic-16')} ${esc(p.product)}${g.info.size ? ' 사이즈 실측 사용' : ''}</div>` : ''}
+    ${p.traits.length ? `<div class="row" style="flex-wrap:wrap;gap:4px">${p.traits.map(t => `<span class="tag indigo">${esc(t)}</span>`).join('')}</div>` : ''}</div>`;
+}
+function infoNote(g) {
+  const t = infoText(g);
+  return t ? `<div class="notice">${ic('shirt')}<span class="grow"><b style="color:var(--ink)">의류 정보 반영</b> ${esc(t)}</span><button class="link strong" data-info="" style="flex:none">수정</button></div>`
+    : `<button class="notice tap" data-info="">${ic('sparkles')}<span class="grow">실제 옷 사진이나 쇼핑몰 상품 링크를 넣으면 실제 옷에 더 가까운 핏을 볼 수 있어요 <b style="color:var(--tint)">의류 정보 추가</b></span>${ic('chevron-right', 'ic-16')}</button>`;
+}
+function hostOf(u) { try { return new URL(/^https?:\/\//.test(u) ? u : 'https://' + u).hostname.replace(/^www\./, ''); } catch (e) { return '쇼핑몰'; } }
+function productFor(g, url) {
+  const P = SAMPLE_PRODUCTS[g.cat === 'pants' && g.sub === '청바지' ? 'denim' : g.cat] || SAMPLE_PRODUCTS.pants;
+  return { name: P.name, host: hostOf(url), traits: { ...P.traits }, sizes: sizeChart(g.cat, state.body.sex) };
+}
+function productCard(g, w) {
+  const P = w.product, fs = CAT_FIELDS[g.cat];
+  const short = f => FIELDS[f].label.replace('단면', '');
+  return `<div class="prod">
+    <div class="prod-h"><span class="pimg">${catIcon(g.cat)}</span><span class="grow"><span class="xs muted">${esc(P.host)}</span><br><b>${esc(P.name)}</b></span><span class="tag yellow">예시 상품</span></div>
+    <div class="group-h">구매한 사이즈 <small>고르면 실측 칸에 이 숫자가 들어가요</small></div>
+    <div class="chips wrap">${P.sizes.map(x => `<button class="chip sm filter" data-size="${x.sz}" aria-pressed="${w.size === x.sz}">${x.sz}</button>`).join('')}</div>
+    <table class="mt sz"><thead><tr><th>사이즈</th>${fs.map(f => `<th>${short(f)}</th>`).join('')}</tr></thead>
+      <tbody>${P.sizes.map(x => `<tr class="${w.size === x.sz ? 'on' : ''}"><td>${x.sz}</td>${fs.map(f => `<td>${x.m[f]}</td>`).join('')}</tr>`).join('')}</tbody></table>
+    <p class="note" style="padding:0">단위 cm, ${fs.filter(f => /단면/.test(FIELDS[f].label)).map(short).join(', ')}은 단면. 프로토타입이라 쇼핑몰 페이지를 실제로 읽지 않고 예시 상품을 보여줘요.</p></div>`;
+}
+screen('req-info', {
+  render() {
+    if (!guard()) return '';
+    const g = curG();
+    if (!wip || wip.gid !== g.id) wip = { gid: g.id, ...JSON.parse(JSON.stringify(g.info || blankInfo())) };
+    const w = wip, P = w.product;
+    return `${bar('의류 정보 추가')}
+    <main class="content">
+      <div class="qhead"><h2>어떤 옷인지 알려주세요</h2><p>사진과 상품 정보를 활용해 실제 의류에 가까운 핏을 표현해요</p></div>
+      <section class="card sec" id="i-photo">
+        <div class="sec-h"><h3>의류 사진 첨부</h3><span class="muted xs">선택</span></div>
+        <div class="photos">${INFO_SLOTS.map((t, i) => w.photos[i] ? `<div class="photo-slot"><img src="${w.photos[i]}" alt="${t} 사진"><span class="cap">${t}</span><button class="x" data-rm="${i}" aria-label="${t} 사진 지우기">${ic('x')}</button></div>`
+          : `<label class="photo-slot">${ic('camera')}<span>${t}</span><input type="file" accept="image/*" data-slot="${i}" aria-label="${t} 사진 올리기"></label>`).join('')}</div>
+        <p class="note">옷 전체의 형태가 보이도록 촬영해 주세요.</p>
+        ${w.photos.some(Boolean) ? '' : `<button class="link strong" data-sample style="align-self:flex-start">${ic('image-plus', 'ic-16')} 예시 사진으로 채우기 (데모)</button>`}
+      </section>
+      <section class="card sec" id="i-link">
+        <div class="sec-h"><h3>쇼핑몰 상품 링크</h3><span class="muted xs">선택</span></div>
+        <label class="search url"><span>${ic('link', 'ic-16')}</span><input id="url" type="url" inputmode="url" placeholder="상품 상세 페이지 URL 붙여넣기" value="${esc(w.url)}" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+        <button class="btn soft sm" data-load ${w.loading ? 'disabled' : ''}>${w.loading ? '상품 정보를 불러오는 중…' : P ? '다시 불러오기' : '상품 정보 불러오기'}</button>
+        ${P ? productCard(g, w) : `<p class="note">구매하신 상품의 링크를 입력해 주세요.${w.url ? '' : ` <button class="link strong" data-sampleurl>예시 링크 넣기 (데모)</button>`}</p>`}
+      </section>
+      <section class="card sec" id="i-trait">
+        <div class="sec-h"><h3>의류 특성</h3>${P ? '<span class="tag indigo">상품 정보로 채움</span>' : ''}</div>
+        ${GARMENT_TRAITS.map(t => `<div class="trait"><div class="group-h">${t.label}</div><div class="chips wrap">${traitChoices(t, g.cat).map(v => `<button class="chip sm filter" data-trait="${t.id}" data-v="${esc(v)}" aria-pressed="${w.traits[t.id] === v}">${esc(v)}</button>`).join('')}</div></div>`).join('')}
+      </section>
+    </main>
+    <footer class="cta stack"><button class="btn primary" data-apply ${hasInfo(w) || g.info?.applied ? '' : 'disabled'}>의류 정보 적용하기</button><button class="link" data-skip>추가 정보 없이 계속하기</button></footer>`;
+  },
+  mount(el, focus) {
+    wireQuit(el);
+    const g = curG(); if (!g || !wip) return;
+    const w = wip;
+    // '상품 링크 입력'으로 들어오면 링크 칸까지 내려줌 (처음 한 번만)
+    if (focus && !w.scrolled) { w.scrolled = true; requestAnimationFrame(() => { const sc = el.querySelector('.content'), sec = el.querySelector('#i-' + focus); if (sc && sec) sc.scrollTop += sec.getBoundingClientRect().top - sc.getBoundingClientRect().top - 8; }); }
+    const load = () => {
+      const u = el.querySelector('#url').value.trim();
+      if (!u) { toast('상품 링크를 붙여넣어 주세요', 'link'); el.querySelector('#url').focus(); return; }
+      w.url = u; w.loading = true; refresh();
+      setTimeout(() => {
+        if (wip !== w) return;
+        w.loading = false; w.product = productFor(g, u); w.size = null; Object.assign(w.traits, w.product.traits);
+        if (current() && current().name === 'req-info') refresh();
+        toast('상품 정보를 불러왔어요', 'shopping-bag');
+      }, 900);
+    };
+    el.addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b || b.disabled) return;
+      if (b.dataset.rm != null) { w.photos[+b.dataset.rm] = null; refresh(); }
+      else if (b.hasAttribute('data-sample')) {
+        // 데모용: 옷 평면 그림을 정면 사진으로, 마네킹이 입은 그림을 착용 사진으로 넣음
+        w.photos[0] = svgData(sketch(g.cat, { m: g.m, highlight: null, labels: false }));
+        w.photos[2] = svgData(fit2d(g.cat, { body: state.body, m: g.m, item: fitItems(g)[0]?.id, mode: 'before' }));
+        refresh(); toast('예시 사진을 넣었어요', 'image');
+      }
+      else if (b.hasAttribute('data-sampleurl')) { el.querySelector('#url').value = w.url = 'https://shop.example.com/goods/102938'; load(); }
+      else if (b.hasAttribute('data-load')) load();
+      else if (b.dataset.size) { w.size = w.size === b.dataset.size ? null : b.dataset.size; refresh(); }
+      else if (b.dataset.trait) { const t = b.dataset.trait; if (w.traits[t] === b.dataset.v) delete w.traits[t]; else w.traits[t] = b.dataset.v; refresh(); }
+      else if (b.hasAttribute('data-apply')) {
+        const { gid, loading, scrolled, ...info } = w;
+        info.applied = true; g.info = hasInfo(info) ? info : null; // 다 지우고 적용하면 의류 정보를 뺌
+        const sz = info.product && info.size && info.product.sizes.find(x => x.sz === info.size);
+        if (sz) { g.m = { ...g.m, ...sz.m }; g.after = {}; }
+        wip = null; save();
+        toast(sz ? `${info.size} 사이즈 실측을 넣었어요` : g.info ? '의류 정보를 적용했어요' : '의류 정보를 뺐어요', 'check-circle-2');
+        back();
+      }
+      else if (b.hasAttribute('data-skip')) { wip = null; back(); }
+    });
+    el.addEventListener('input', e => { if (e.target.id === 'url') w.url = e.target.value; });
+    el.addEventListener('keydown', e => { if (e.target.id === 'url' && e.key === 'Enter') { e.preventDefault(); load(); } });
+    el.addEventListener('change', async e => {
+      const f = e.target.files && e.target.files[0]; if (!f || e.target.dataset.slot == null) return;
+      const d = await shrink(f); if (!d) { toast('사진을 읽지 못했어요', 'alert-circle'); return; }
+      w.photos[+e.target.dataset.slot] = d; refresh();
+    });
   },
 });
 
@@ -292,7 +429,9 @@ function shrink(file) { // 사진을 긴 변 640px JPEG 로 줄여 저장
     img.onerror = () => res(null); img.src = url;
   });
 }
-const svgData = svg => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg.replace(/var\(--[a-z0-9-]+\)/g, m => ({ 'var(--surface-2)': '#f5f7fa', 'var(--fabric)': '#c9d3e6', 'var(--fabric-2)': '#a9b8d6', 'var(--fabric-line)': '#6f7f9f', 'var(--ink)': '#121826', 'var(--ink-2)': '#465165', 'var(--ink-3)': '#8b94a5', 'var(--tape)': '#f3b61f', 'var(--chalk)': '#d8473d', 'var(--surface)': '#ffffff', 'var(--line)': '#e3e7ee', 'var(--line-strong)': '#cdd4df', 'var(--skin)': '#e6dfd8', 'var(--skin-2)': '#cfc6bd', 'var(--indigo)': '#233f86', 'var(--surface-3)': '#e9edf3' }[m] || '#999')));
+// 그림 SVG 를 사진 칸에 넣을 이미지 주소로. 한 태그에 같은 속성이 두 번 있으면(화면에선 앞의 것만 씀) 이미지로는 안 열려서 뒤의 것을 지움
+const dedupAttrs = svg => svg.replace(/<[a-zA-Z][^>]*>/g, tag => { const seen = new Set(); return tag.replace(/\s([a-zA-Z_:][-\w:.]*)="[^"]*"/g, (m, n) => seen.has(n) ? '' : (seen.add(n), m)); });
+const svgData = svg => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(dedupAttrs(svg).replace(/var\(--[a-z0-9-]+\)/g, m => ({ 'var(--surface-2)': '#f5f7fa', 'var(--fabric)': '#c9d3e6', 'var(--fabric-2)': '#a9b8d6', 'var(--fabric-line)': '#6f7f9f', 'var(--ink)': '#121826', 'var(--ink-2)': '#465165', 'var(--ink-3)': '#8b94a5', 'var(--tape)': '#f3b61f', 'var(--chalk)': '#d8473d', 'var(--surface)': '#ffffff', 'var(--line)': '#e3e7ee', 'var(--line-strong)': '#cdd4df', 'var(--skin)': '#e6dfd8', 'var(--skin-2)': '#cfc6bd', 'var(--indigo)': '#233f86', 'var(--surface-3)': '#e9edf3' }[m] || '#999')));
 screen('req-detail', {
   render() {
     if (!guard()) return '';
@@ -368,6 +507,7 @@ export function ticket(g, i, { editable = false, compact = false } = {}) {
         <dt>수선 항목</dt><dd>${its.map(x => esc(x.name)).join(', ')}</dd>
         ${fit && g.preset && g.cat === 'pants' ? `<dt>원하는 기장</dt><dd>${esc(PANTS_PRESETS.find(p => p.id === g.preset)?.name || '')}</dd>` : ''}
         ${fit ? `<dt>측정 방법</dt><dd>${esc(method?.t || '')}</dd>` : ''}
+        ${g.info?.applied ? `<dt>의류 정보</dt><dd>${esc(infoText(g))}${!compact && g.info.photos.some(Boolean) ? `<span class="thumbs">${g.info.photos.filter(Boolean).map(p => `<img src="${p}" alt="">`).join('')}</span>` : ''}</dd>` : ''}
         ${optTxt.length ? `<dt>추가 옵션</dt><dd>${optTxt.map(esc).join(', ')}</dd>` : ''}
         ${zones.length ? `<dt>손상 부위</dt><dd>${zones.join(', ')}${g.damage.types.length ? ` (${g.damage.types.map(esc).join(', ')})` : ''}</dd>` : ''}
         ${g.note ? `<dt>요청사항</dt><dd>${esc(g.note)}</dd>` : ''}
@@ -384,7 +524,8 @@ export function billHtml(q, { showFees = false } = {}) {
   if (showFees) {
     if (q.pickupFree) rows.push(`<div class="l disc"><span>픽업비 (2벌 이상 무료)</span><span>0원</span></div>`);
     else if (q.pickup) rows.push(`<div class="l"><span>픽업비</span><span>${won(q.pickup)}</span></div>`);
-    if (q.ship) rows.push(`<div class="l"><span>배송비</span><span>${won(q.ship)}</span></div>`);
+    if (q.shipBy === 'self') rows.push(`<div class="l"><span>가게 직접 배달비</span><span>${q.ship ? won(q.ship) : '무료'}</span></div>`);
+    else if (q.ship) rows.push(`<div class="l"><span>옷라인 배송비</span><span>${won(q.ship)}</span></div>`);
   }
   return `<div class="bill">${rows.join('')}<div class="t"><span>${showFees ? '총 결제 예정 금액' : '총 예상 수선비'}</span><b>${won(q.total)}</b></div></div>`;
 }

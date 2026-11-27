@@ -59,7 +59,7 @@ export const state = load();
 let saveTimer;
 export function save() {
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* 용량 초과면 사진 빼고 저장 */ try { const s = JSON.parse(JSON.stringify(state)); (s.draft?.garments || []).forEach(g => g.photos = []); s.orders.forEach(o => o.garments.forEach(g => g.photos = [])); localStorage.setItem(KEY, JSON.stringify(s)); } catch (e2) {} } }, 150);
+  saveTimer = setTimeout(() => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* 용량 초과면 사진 빼고 저장 */ try { const s = JSON.parse(JSON.stringify(state)); const strip = g => { g.photos = []; if (g.info) g.info.photos = [null, null, null]; }; (s.draft?.garments || []).forEach(strip); s.orders.forEach(o => o.garments.forEach(strip)); localStorage.setItem(KEY, JSON.stringify(s)); } catch (e2) {} } }, 150);
   listeners.forEach(f => f());
 }
 export const onChange = f => { listeners.add(f); return () => listeners.delete(f); };
@@ -75,7 +75,7 @@ export function toggleLike(id) { const i = state.likes.indexOf(id); if (i >= 0) 
 let gid = 0;
 export function newGarment(cat = null, from = null) {
   const g = { id: 'g' + Date.now().toString(36) + (gid++), cat, sub: null, name: '', closetId: null, items: [], m: {}, after: {}, preset: null, fitPreset: {},
-    method: 'self', options: {}, note: '', photos: [], damage: { zones: [], types: [] }, snapshot: null };
+    method: 'self', options: {}, note: '', photos: [], damage: { zones: [], types: [] }, snapshot: null, info: null }; // info = 의류 정보 추가 화면(사진, 상품 링크, 특성)
   if (from) { Object.assign(g, { cat: from.cat, sub: from.sub, name: from.name, closetId: from.id, m: { ...from.m } }); }
   else if (cat) g.m = { ...SAMPLE_MEASURE[state.body.sex][cat] };
   return g;
@@ -141,12 +141,13 @@ export function quote(garments, shop = null, bk = null) {
   const bundle = garments.length >= 2 ? Math.round(work * FEES.bundleRate / 100) * 100 : 0;
   const isFirstAtShop = shop && shop.newDiscount && !state.orders.some(o => o.shopId === shop.id);
   const newDisc = isFirstAtShop ? Math.round(work * shop.newDiscount / 100) * 100 : 0;
-  let pickup = 0, ship = 0;
+  let pickup = 0, ship = 0, shipBy = null;
   if (bk) {
     if (bk.dropoff === 'pickup') pickup = garments.length >= 2 ? 0 : FEES.pickup;
-    if (bk.receive === 'delivery') ship = FEES.ship[bk.ship || 'normal'];
+    // 받는 방법이 배송이면 옷라인 배송(일반, 당일) 또는 가게 직접 배달(그 가게가 정한 배달비)
+    if (bk.receive === 'delivery') { const self = bk.ship === 'self' && shop && shop.selfDelivery; shipBy = self ? 'self' : 'otline'; ship = self ? shop.selfDelivery.fee : FEES.ship[bk.ship === 'fast' ? 'fast' : 'normal']; }
   }
-  return { per, std, mk, work, bundle, newDisc, pickup, pickupFree: bk && bk.dropoff === 'pickup' && garments.length >= 2, ship, total: work - bundle - newDisc + pickup + ship };
+  return { per, std, mk, work, bundle, newDisc, pickup, pickupFree: bk && bk.dropoff === 'pickup' && garments.length >= 2, ship, shipBy, total: work - bundle - newDisc + pickup + ship };
 }
 
 // ───────── 수선집 추천 ─────────
@@ -194,8 +195,10 @@ export function addWorkDays(date, n, closed = [0]) {
 export function schedule(bk, shop) {
   const start = new Date(bk.date);
   const done = addWorkDays(start, shop.lead, shop.closed);
-  const recv = bk.receive === 'delivery' ? addWorkDays(done, bk.ship === 'fast' ? 0 : 1, [0]) : done;
-  return { start, done, recv: bk.receive === 'delivery' && bk.ship === 'fast' ? done : recv };
+  // 당일 배송, 가게 직접 배달은 수선 끝난 날 도착. 옷라인 일반 배송은 다음 날
+  const sameDay = bk.ship === 'fast' || bk.ship === 'self';
+  const recv = bk.receive === 'delivery' && !sameDay ? addWorkDays(done, 1, [0]) : done;
+  return { start, done, recv };
 }
 export function placeOrder() {
   const d = state.draft, bk = state.booking, shop = shopOf(bk.shopId);
@@ -220,10 +223,14 @@ const STEP_MSG = {
   2: (s, o) => ({ sys: o.booking.dropoff === 'pickup' ? '옷을 수거해서 수선집에 맡겼어요.' : '수선집에 옷을 맡기셨어요.' }),
   3: () => ({ them: '지금 작업 시작합니다. 진행 사진이 필요하면 말씀 주세요.' }),
   4: () => ({ them: '수선 끝났어요. 요청하신 치수 다시 재봤는데 딱 맞아요.' }),
-  5: () => ({ sys: '옷이 배송을 시작했어요.' }),
+  5: (s, o) => ({ sys: o.booking.ship === 'self' ? '수선사가 직접 옷을 가져다드리러 출발했어요.' : '옷이 배송을 시작했어요.' }),
   6: () => ({ sys: '수령을 확인했어요. 안심결제 금액이 수선사에게 정산돼요.' }),
 };
-export const orderSteps = o => o.booking.receive === 'delivery' ? ORDER_STEPS : ORDER_STEPS.map(s => s.id === 'shipping' ? { id: 'shipping', t: '수령 대기', d: '매장에서 옷을 찾아가세요' } : s);
+export const orderSteps = o => {
+  const ship = o.booking.receive !== 'delivery' ? { id: 'shipping', t: '수령 대기', d: '매장에서 옷을 찾아가세요' }
+    : o.booking.ship === 'self' ? { id: 'shipping', t: '가게 직접 배달 중', d: '수선사가 직접 옷을 가져다드리고 있어요' } : null;
+  return ship ? ORDER_STEPS.map(s => s.id === 'shipping' ? ship : s) : ORDER_STEPS;
+};
 export function advance(o) {
   if (o.status >= 6) return;
   o.status++;

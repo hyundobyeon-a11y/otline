@@ -8,6 +8,10 @@ import { createMap } from '../map.js';
 import { ticket, billHtml } from './request.js';
 
 const gTitle = g => g.name || g.sub || catOf(g.cat).name;
+// 가게 직접 배달 (수선 끝난 옷을 가게가 직접 가져다줌, 옷라인 배송과 따로)
+export const selfTag = s => s.selfDelivery ? '<span class="tag ok">가게 직접 배달</span>' : '';
+const selfFee = s => s.selfDelivery.fee ? won(s.selfDelivery.fee) : '무료';
+const selfInfo = s => `${s.selfDelivery.km}km 안, 배달비 ${selfFee(s)}`;
 function reqSummary(d) {
   return d.garments.map(g => { const ch = changes(g); const its = g.items.map(id => ITEMS[g.cat].find(i => i.id === id)?.name).filter(Boolean);
     return `<div class="small"><b>${esc(gTitle(g))}</b> <span class="sub">${its.join(', ')}</span>${ch[0] ? `<br><span class="muted xs">${FIELDS[ch[0].f].label} ${cm(ch[0].from)} → ${cm(ch[0].to)}${ch[1] ? `, ${FIELDS[ch[1].f].label} ${cm(ch[1].from)} → ${cm(ch[1].to)}` : ''}</span>` : ''}</div>`; }).join('');
@@ -31,7 +35,7 @@ screen('compare', {
           <span class="grow" style="display:flex;flex-direction:column;gap:3px"><b style="font-size:16px">${esc(x.s.name)} ${x.s.id === state.preferShop ? '<span class="tag indigo">찜한 곳</span>' : ''}</b>
           <span class="dotsep">${stars(r.r, r.n)}<span>${fmtDist(x.d)}</span><span>${x.s.lead === 1 ? '내일 완료' : x.s.lead + '일'}</span></span></span>
           <button class="heart${isLiked(x.s.id) ? ' on' : ''}" data-like="${x.s.id}" aria-label="좋아요" style="border:0;background:none;color:var(--ink-3)">${ic('heart')}</button></div>
-        ${x.why.length ? `<div class="why">${x.why.map(w => `<span class="tag ${/입점/.test(w) ? 'chalk' : /전문/.test(w) ? 'indigo' : ''}">${w}</span>`).join('')}</div>` : ''}
+        ${x.why.length || x.s.selfDelivery ? `<div class="why">${x.why.map(w => `<span class="tag ${/입점/.test(w) ? 'chalk' : /전문/.test(w) ? 'indigo' : ''}">${w}</span>`).join('')}${selfTag(x.s)}</div>` : ''}
         <div class="quote"><span class="calc">표준가 ${won(q.std)}<br>${q.mk === 0 ? '추가금 없음' : `수선집 추가금 ${q.mk > 0 ? '+' : ''}${won(q.mk)}`}${q.newDisc ? `<br><span style="color:var(--chalk)">첫 주문 할인 ${won(-q.newDisc)}</span>` : ''}${q.bundle ? `<br><span style="color:var(--chalk)">묶음 할인 ${won(-q.bundle)}</span>` : ''}</span><span class="tot">${won(q.total)}</span></div>
       </div>`;
     };
@@ -96,14 +100,15 @@ screen('shop', {
         <h2>${esc(s.name)}</h2>
         <div class="dotsep">${stars(r.r, r.n)}<span>${fmtDist(distM(s))}</span><span>${s.lead === 1 ? '내일 완료' : `평균 ${s.lead}일`}</span></div>
         <div class="row small"><span class="${isOpen(s) ? 'open' : 'closed'}">${isOpen(s) ? '영업 중' : '영업 종료'}</span><span class="sub">${s.hours[0]}:00 ~ ${s.hours[1]}:00${s.closed.length ? `, ${s.closed.map(x => DAYS[x]).join(', ')}요일 휴무` : ', 연중무휴'}</span></div>
-        <div class="row" style="flex-wrap:wrap;gap:4px">${s.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>
+        <div class="row" style="flex-wrap:wrap;gap:4px">${s.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}${selfTag(s)}</div>
       </section>
       <nav class="tabs" id="tabs">${[['info', '기본정보'], ['price', '가격표'], ['work', '작업 사례'], ['review', `리뷰 ${r.n}`]].map(([k, t], i) => `<button data-tabto="${k}" class="${i === 0 ? 'on' : ''}">${t}</button>`).join('')}</nav>
       <section class="panel" id="p-info">
         <div class="sec-h"><h3>수선사 소개</h3><span class="muted small">경력 ${s.years}년</span></div>
         <p class="sub" style="font-size:14.5px;line-height:1.6">${esc(s.intro)}</p>
         <dl class="kv"><dt>주소</dt><dd>${esc(s.addr)}</dd><dt>안심번호</dt><dd class="row between">${esc(s.phone)} <button class="btn xs line" data-copy="${esc(s.phone)}">복사</button></dd>
-          <dt>맡기는 방법</dt><dd>${s.pickup ? '직접 방문, 픽업' : '직접 방문만'}</dd><dt>오늘 접수</dt><dd>${s.today ? '가능' : '내일부터'}</dd></dl>
+          <dt>맡기는 방법</dt><dd>${s.pickup ? '직접 방문, 옷라인 픽업' : '직접 방문만'}</dd>
+          <dt>받는 방법</dt><dd>매장에서 찾기, 옷라인 배송${s.selfDelivery ? `<span class="row" style="flex-wrap:wrap;gap:4px 6px;margin-top:6px"><span class="tag ok">${ic('bike')}가게 직접 배달</span><span class="small sub">${selfInfo(s)}</span></span>` : ''}</dd><dt>오늘 접수</dt><dd>${s.today ? '가능' : '내일부터'}</dd></dl>
         <div class="notice">${ic('shield-check')}<span>전화번호는 안심번호로 보여드려요. 옷라인으로 맡기면 <b>안심결제</b>와 <b>재수선 보장</b>을 받을 수 있어요.</span></div>
       </section>
       ${q ? `<section class="panel" style="margin-top:10px"><div class="sec-h"><h3>내 요청서 예상 견적</h3><button class="link strong" data-sheet>요청서 보기 ${ic('chevron-right', 'ic-16')}</button></div>${billHtml(q)}</section>` : ''}
@@ -198,11 +203,14 @@ screen('book', {
 
       <section class="sec"><div class="group-h">수선 후 받는 방법</div><div class="opts two">
         <button class="opt" data-recv="visit" aria-pressed="${bk.receive === 'visit'}" style="flex-direction:column;gap:6px"><span class="ico">${ic('store')}</span><span><b>매장에서 찾기</b><small>무료</small></span></button>
-        <button class="opt" data-recv="delivery" aria-pressed="${bk.receive === 'delivery'}" style="flex-direction:column;gap:6px"><span class="ico">${ic('package')}</span><span><b>배송받기</b><small>${won(FEES.ship.normal)}부터</small></span></button></div>
-        ${bk.receive === 'delivery' ? `<div class="seg"><button data-ship="normal" aria-pressed="${bk.ship === 'normal'}">일반 배송 ${won(FEES.ship.normal)}</button><button data-ship="fast" aria-pressed="${bk.ship === 'fast'}">당일 배송 ${won(FEES.ship.fast)}</button></div>` : ''}</section>
+        <button class="opt" data-recv="delivery" aria-pressed="${bk.receive === 'delivery'}" style="flex-direction:column;gap:6px"><span class="ico">${ic('package')}</span><span><b>배송받기</b><small>${s.selfDelivery ? '옷라인, 가게 직접 배달' : `${won(FEES.ship.normal)}부터`}</small></span></button></div>
+        ${bk.receive === 'delivery' ? `<div class="opts">
+          <button class="opt" data-ship="normal" aria-pressed="${bk.ship === 'normal'}"><span class="ico">${ic('truck')}</span><span><b>옷라인 일반 배송</b><small>옷라인 택배로 수선 끝난 다음 날 도착</small></span><span class="add">${won(FEES.ship.normal)}</span><span class="radio"></span></button>
+          <button class="opt" data-ship="fast" aria-pressed="${bk.ship === 'fast'}"><span class="ico">${ic('zap')}</span><span><b>옷라인 당일 배송</b><small>수선 끝난 날 옷라인 기사님이 가져다줘요</small></span><span class="add">${won(FEES.ship.fast)}</span><span class="radio"></span></button>
+          ${s.selfDelivery ? `<button class="opt" data-ship="self" aria-pressed="${bk.ship === 'self'}"><span class="ico">${ic('bike')}</span><span><b>가게 직접 배달 <span class="tag ok">이 가게만</span></b><small>수선 끝난 날 수선사가 직접 가져다줘요 (${s.selfDelivery.km}km 안)</small></span><span class="add">${selfFee(s)}</span><span class="radio"></span></button>` : ''}</div>` : ''}</section>
 
       ${sch ? `<section class="sec"><div class="group-h">예상 일정</div><div class="timeline-mini">
-        <div><span>${bk.dropoff === 'pickup' ? '픽업' : '방문'}</span><b>${fmtShort(sch.start)}</b></div><div><span>수선 완료</span><b>${fmtShort(sch.done)}</b></div><div><span>${bk.receive === 'delivery' ? '배송 도착' : '찾으러 가기'}</span><b>${fmtShort(sch.recv)}</b></div></div></section>` : ''}
+        <div><span>${bk.dropoff === 'pickup' ? '픽업' : '방문'}</span><b>${fmtShort(sch.start)}</b></div><div><span>수선 완료</span><b>${fmtShort(sch.done)}</b></div><div><span>${bk.receive !== 'delivery' ? '찾으러 가기' : bk.ship === 'self' ? '가게 배달 도착' : '배송 도착'}</span><b>${fmtShort(sch.recv)}</b></div></div></section>` : ''}
 
       <section class="card sec"><div class="sec-h"><h3>결제 예정 금액</h3></div>${billHtml(q, { showFees: true })}</section>
       <section class="sec"><div class="group-h">결제 수단</div><div class="chips wrap">${[['card', '신용, 체크카드'], ['easy', '간편결제'], ['bank', '계좌이체']].map(([k, t]) => `<button class="chip" data-pay="${k}" aria-pressed="${bk.pay === k}">${t}</button>`).join('')}</div>
@@ -244,7 +252,7 @@ screen('book-done', {
           <dt>${o.booking.dropoff === 'pickup' ? '픽업' : '방문'}</dt><dd>${fmtDate(sch.start)} ${o.booking.slot.replace('-', '시~')}시</dd>
           ${o.booking.dropoff === 'pickup' ? `<dt>픽업 장소</dt><dd>${esc(o.booking.address)}</dd>` : ''}
           <dt>수선 완료</dt><dd>${fmtDate(sch.done)} 예정</dd>
-          <dt>받는 방법</dt><dd>${o.booking.receive === 'delivery' ? `${o.booking.ship === 'fast' ? '당일' : '일반'} 배송, ${fmtDate(sch.recv)} 도착 예정` : '매장에서 찾기'}</dd>
+          <dt>받는 방법</dt><dd>${o.booking.receive === 'delivery' ? `${o.booking.ship === 'self' ? '가게 직접 배달' : `옷라인 ${o.booking.ship === 'fast' ? '당일' : '일반'} 배송`}, ${fmtDate(sch.recv)} 도착 예정` : '매장에서 찾기'}</dd>
           <dt>의류</dt><dd>${o.garments.map(g => esc(g.name || g.sub)).join(', ')}</dd>
           <dt>결제 예정</dt><dd><b>${won(o.quote.total)}</b> (안심결제)</dd></dl></div></section>
       <div class="notice">${ic('archive')}<span>맡긴 옷의 치수를 <b>내 옷장</b>에 저장했어요. 다음에는 한 번에 다시 맡길 수 있어요.</span></div>

@@ -709,3 +709,37 @@ img.shop-photo{width:100%;height:100%;object-fit:cover;display:block;background:
 .hero-img > img.shop-photo{position:absolute;inset:0}
 .hero-img::after{content:"";position:absolute;left:0;right:0;top:0;height:120px;background:linear-gradient(color-mix(in srgb,var(--bg) 72%,transparent),color-mix(in srgb,var(--bg) 0%,transparent));pointer-events:none}
 .shop .thumb,.cmp .thumb{box-shadow:inset 0 0 0 .5px rgba(0,0,0,.08)}
+
+/* 11/27 팀원 피드백: 의류 정보 추가(STEP 2 상자, 새 화면), 가게 직접 배달 */
+.ginfo{background:var(--indigo-50);border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.ginfo-h{display:flex;align-items:center;gap:6px;color:var(--tint);font-size:15px}
+.ginfo-h .link{margin-left:auto}
+.ginfo p{font-size:13.5px;color:var(--ink-2);line-height:1.5}
+.ginfo .grid2{gap:8px;margin-top:2px}
+.ginfo .btn.sm{flex:1;height:42px;font-size:14px;padding:0 10px;gap:6px;background:var(--surface);color:var(--tint);box-shadow:none}
+.ginfo.on{background:var(--surface-2)}
+.ginfo.on .ginfo-h{color:var(--ok)}
+.ginfo.on .ginfo-h b{color:var(--ink)}
+.ginfo .small svg.lucide{vertical-align:-3px;color:var(--tint)}
+.thumbs{display:flex;gap:6px;align-items:center;margin-top:4px;flex-wrap:wrap}
+.thumbs img{width:44px;height:44px;border-radius:10px;object-fit:cover;background:var(--surface);box-shadow:inset 0 0 0 .5px var(--line)}
+.card .photo-slot{background:var(--surface-2);box-shadow:none}
+.photo-slot .cap{position:absolute;left:6px;bottom:6px;z-index:1;background:rgba(0,0,0,.5);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px}
+.prod{display:flex;flex-direction:column;gap:10px;background:var(--surface-2);border-radius:18px;padding:12px}
+.prod-h{display:flex;align-items:center;gap:10px}
+.prod-h .pimg{width:46px;height:46px;border-radius:12px;background:var(--surface);color:var(--tint);display:grid;place-items:center;flex:none;padding:6px}
+.prod-h .pimg svg{width:100%;height:100%}
+.prod .group-h{padding:0}
+table.mt.sz{font-size:12.5px}
+table.mt.sz th,table.mt.sz td{text-align:center;padding:6px 2px}
+table.mt.sz th:first-child,table.mt.sz td:first-child{text-align:left}
+table.mt.sz tr.on td{color:var(--tint);font-weight:700}
+.trait{display:flex;flex-direction:column;gap:6px}
+.trait .group-h{padding:0}
+.trait .chip:not([aria-pressed="true"]){background:var(--surface-2);box-shadow:none}
+.prod .chip:not([aria-pressed="true"]){background:var(--surface);box-shadow:none}
+.cta.stack{flex-direction:column;align-items:stretch;gap:2px}
+.cta.stack .btn{flex:none;width:100%}
+.cta.stack .link{align-self:center;padding:8px 12px;font-size:14px}
+.notice.tap{border:0;width:100%;text-align:left;font:inherit;font-size:13.5px;align-items:center;color:var(--ink-2)}
+.tag svg.lucide{width:12px;height:12px}
