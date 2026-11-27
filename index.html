@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="옷라인">
+<meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<title>옷라인 앱</title>
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="app.css?v=1127d">
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/","./js/main.js":"./js/main.js?v=1127d","./js/router.js":"./js/router.js?v=1127d","./js/store.js":"./js/store.js?v=1127d","./js/ui.js":"./js/ui.js?v=1127d","./js/data.js":"./js/data.js?v=1127d","./js/garments.js":"./js/garments.js?v=1127d","./js/map.js":"./js/map.js?v=1127d","./js/fit3d.js":"./js/fit3d.js?v=1127d","./js/screens/home.js":"./js/screens/home.js?v=1127d","./js/screens/request.js":"./js/screens/request.js?v=1127d","./js/screens/shops.js":"./js/screens/shops.js?v=1127d","./js/screens/orders.js":"./js/screens/orders.js?v=1127d","./js/screens/my.js":"./js/screens/my.js?v=1127d"}}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+<div class="stage-wrap">
+  <aside class="side side-l" aria-label="화면 목록">
+    <div class="brand"><span id="brandLogo"></span><div><b>옷라인</b><small>5조 최종발표용 앱 프로토타입</small></div></div>
+    <nav id="screenNav"></nav>
+  </aside>
+
+  <div class="device-fit">
+    <div class="device">
+      <div class="btn-side l1"></div><div class="btn-side l2"></div><div class="btn-side l3"></div><div class="btn-side r1"></div>
+      <div class="screen">
+        <div class="island" aria-hidden="true"></div>
+        <div class="statusbar" aria-hidden="true">
+          <span class="time">9:41</span>
+          <span class="r">
+            <svg width="19" height="12" viewBox="0 0 19 12"><rect x="0" y="7.5" width="3.2" height="4.5" rx="1" fill="currentColor"/><rect x="5.1" y="5" width="3.2" height="7" rx="1" fill="currentColor"/><rect x="10.2" y="2.5" width="3.2" height="9.5" rx="1" fill="currentColor"/><rect x="15.3" y="0" width="3.2" height="12" rx="1" fill="currentColor"/></svg>
+            <svg width="17" height="12" viewBox="0 0 17 12"><path d="M8.5 12 6 9.4a3.6 3.6 0 0 1 5 0Z" fill="currentColor"/><path d="M3.2 6.6a7.6 7.6 0 0 1 10.6 0l-1.5 1.5a5.5 5.5 0 0 0-7.6 0Z" fill="currentColor"/><path d="M0 3.5a12 12 0 0 1 17 0l-1.5 1.5a9.9 9.9 0 0 0-14 0Z" fill="currentColor"/></svg>
+            <svg width="28" height="13" viewBox="0 0 28 13"><rect x=".5" y=".5" width="24" height="12" rx="3.8" fill="none" stroke="currentColor" opacity=".35"/><rect x="2.5" y="2.5" width="20" height="8" rx="2.2" fill="currentColor"/><path d="M26 4.6v3.8c.8-.3 1.4-1 1.4-1.9s-.6-1.6-1.4-1.9Z" fill="currentColor" opacity=".4"/></svg>
+          </span>
+        </div>
+        <div class="app" id="app"></div>
+        <div class="home-ind" aria-hidden="true"></div>
+      </div>
+    </div>
+  </div>
+
+  <aside class="side side-r" aria-label="이 화면 설명">
+    <div class="explain" id="explain"></div>
+    <div class="side-foot">
+      <button type="button" id="resetDemo">데모 처음부터</button>
+    </div>
+  </aside>
+</div>
+
+<!-- 터미널은 JS, CSS 를 1시간 저장함. 고치면 위 importmap 과 여기의 v= 를 같이 올림 -->
+<script type="module" src="js/main.js?v=1127d"></script>
+</body>
+</html>
