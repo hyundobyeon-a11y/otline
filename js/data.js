@@ -179,7 +179,7 @@ export const AREAS = [
 // 수선집: 이름과 주소만 카카오맵에 있는 실제 가게 (11/27 현도 요청). 별점, 후기, 가격, 소개, 태그, 사진, 영업시간, 배달은 모두 예시
 // 화면에는 DEMO_NOTE 를 같이 붙임. x,y 는 map.js 동 이름 자리에 맞춰 그 가게 동네(안암역 옆, 보문동 왼쪽 아래, 동선동 왼쪽 위, 제기동 오른쪽 아래) 쯤. markup = 표준가에 붙는 가게별 추가금(항목당)
 // photo = 그 가게 실제 사진(카카오맵 장소 페이지 대표 사진, 11/27 현도 요청). 간판의 가게 이름, 전화번호로 그 가게인지 확인한 것만 씀. photoBy = 출처 표시
-//   미미옷수선은 맞는 사진을 못 찾아 그림(shopHero). 예전 Unsplash 외국 사진은 app/trash/img_unsplash_1127/
+//   s7 은 미미옷수선(제기동)이었는데 맞는 사진이 없어 11/27 틈새옷수선(간판 '틈새 924-7584' 확인)으로 바꿈. 예전 Unsplash 외국 사진은 app/trash/img_unsplash_1127/
 // selfDelivery = 수선이 끝난 옷을 가게가 직접 배달함 (옷라인 배송과 따로). fee 배달비 예시, km 배달 거리. 11/27 팀 회의 결정, 표시만
 export const SHOPS = [
   { id: 's1', name: '래미안옷수선', x: 470, y: 650, photo: 'img/kakao-s1.jpg', photoBy: '카카오맵 방문자 사진', years: 22, rating: 4.9, reviews: 128, lead: 1,
@@ -212,11 +212,11 @@ export const SHOPS = [
     hours: [8, 20], closed: [0], pickup: true, today: false, hue: 190, selfDelivery: { fee: 0, km: 1.5 },
     intro: '세탁소와 같이 해요. 셔츠는 세탁, 다림질까지 한 번에 맡기실 수 있어요.',
     addr: '서울 성북구 지봉로20길 61 1층', phone: '0507-1***-8862' },
-  { id: 's7', name: '미미옷수선', x: 790, y: 850, years: 6, rating: 4.8, reviews: 3, lead: 1, isNew: true,
+  { id: 's7', name: '틈새옷수선', x: 320, y: 345, photo: 'img/kakao-s7.jpg', photoBy: '카카오맵 매장 사진', years: 6, rating: 4.8, reviews: 3, lead: 1, isNew: true,
     spec: ['pants', 'skirt'], tags: ['이번 주 입점', '첫 주문 10% 할인', '픽업 가능'], markup: { fit: 0, repair: 0 },
     hours: [10, 19], closed: [0], pickup: true, today: true, hue: 265, newDiscount: 0.1,
-    intro: '디자이너 브랜드 샘플실에서 6년 일하다 문을 열었어요.',
-    addr: '서울 동대문구 약령시로 28', phone: '0507-1***-1047' },
+    intro: '이번 주 옷라인에 들어왔어요. 바지, 치마 기장과 통 수선을 해요.',
+    addr: '서울 성북구 동소문로22길 19-8', phone: '0507-1***-1047' },
 ];
 
 // 가게별 후기 (가상). cat: 의류, tags: 좋았던 점
