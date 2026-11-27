@@ -178,35 +178,36 @@ export const AREAS = [
 
 // 수선집: 이름과 주소만 카카오맵에 있는 실제 가게 (11/27 현도 요청). 별점, 후기, 가격, 소개, 태그, 사진, 영업시간, 배달은 모두 예시
 // 화면에는 DEMO_NOTE 를 같이 붙임. x,y 는 map.js 동 이름 자리에 맞춰 그 가게 동네(안암역 옆, 보문동 왼쪽 아래, 동선동 왼쪽 위, 제기동 오른쪽 아래) 쯤. markup = 표준가에 붙는 가게별 추가금(항목당)
-// photo = 표지 사진. 11/27 밤에 뺌: Unsplash 외국 가게 사진(외국인 나옴)이 실제 한국 가게 이름 밑에 떠서. 지금은 shopHero 가 가게 그림을 그림 (사진 파일은 src/img 에 남아 있음, 안 씀)
+// photo = 그 가게 실제 사진(카카오맵 장소 페이지 대표 사진, 11/27 현도 요청). 간판의 가게 이름, 전화번호로 그 가게인지 확인한 것만 씀. photoBy = 출처 표시
+//   미미옷수선은 맞는 사진을 못 찾아 그림(shopHero). 예전 Unsplash 외국 사진은 app/trash/img_unsplash_1127/
 // selfDelivery = 수선이 끝난 옷을 가게가 직접 배달함 (옷라인 배송과 따로). fee 배달비 예시, km 배달 거리. 11/27 팀 회의 결정, 표시만
 export const SHOPS = [
-  { id: 's1', name: '래미안옷수선', x: 470, y: 650, years: 22, rating: 4.9, reviews: 128, lead: 1,
+  { id: 's1', name: '래미안옷수선', x: 470, y: 650, photo: 'img/kakao-s1.jpg', photoBy: '카카오맵 방문자 사진', years: 22, rating: 4.9, reviews: 128, lead: 1,
     spec: ['pants'], tags: ['경력 22년', '바지 수선 전문', '픽업 가능'], markup: { fit: 1500, repair: 0 },
     hours: [10, 19], closed: [0], pickup: true, today: true, hue: 222, selfDelivery: { fee: 2000, km: 2 },
     intro: '바지 기장, 허리, 통만 20년 넘게 했어요. 원래 밑단 살리기는 하루면 돼요.',
     addr: '서울 성북구 고려대로13길 55 1층', phone: '0507-1***-2201' },
-  { id: 's2', name: '윤이옷수선', x: 330, y: 800, years: 15, rating: 4.8, reviews: 94, lead: 2,
+  { id: 's2', name: '윤이옷수선', x: 330, y: 800, photo: 'img/kakao-s2.jpg', photoBy: '카카오맵 로드뷰', years: 15, rating: 4.8, reviews: 94, lead: 2,
     spec: ['shirt', 'jacket'], tags: ['경력 15년', '셔츠/정장', '픽업 가능'], markup: { fit: 1000, repair: 500 },
     hours: [10, 20], closed: [0], pickup: true, today: true, hue: 160,
     intro: '셔츠 소매, 정장 재킷 어깨처럼 손이 많이 가는 수선을 주로 해요.',
     addr: '서울 성북구 지봉로20길 53', phone: '0507-1***-4410' },
-  { id: 's3', name: '꼼꼼 옷수선&소품샵', x: 250, y: 320, years: 9, rating: 4.7, reviews: 56, lead: 3,
+  { id: 's3', name: '꼼꼼 옷수선&소품샵', x: 250, y: 320, photo: 'img/kakao-s3.jpg', photoBy: '카카오맵 매장 사진', years: 9, rating: 4.7, reviews: 56, lead: 3,
     spec: ['dress', 'skirt'], tags: ['리폼', '원피스/니트', '사진 상담'], markup: { fit: 3000, repair: 1000 },
     hours: [11, 20], closed: [0, 1], pickup: false, today: false, hue: 330,
     intro: '원피스 기장, 니트 수선, 리폼까지. 사진 보내주시면 먼저 상담해 드려요.',
     addr: '서울 성북구 동소문로24길 47 지층', phone: '0507-1***-7713' },
-  { id: 's4', name: '명품의류수선', x: 290, y: 290, years: 30, rating: 4.6, reviews: 41, lead: 4,
+  { id: 's4', name: '명품의류수선', x: 290, y: 290, photo: 'img/kakao-s4.jpg', photoBy: '카카오맵 매장 사진', years: 30, rating: 4.6, reviews: 41, lead: 4,
     spec: ['jacket'], tags: ['경력 30년', '가죽/코트', '안감 교체'], markup: { fit: 5000, repair: 3000 },
     hours: [9, 18], closed: [0], pickup: true, today: false, hue: 28,
     intro: '가죽 재킷, 코트 안감 교체, 명품 수선을 해요. 견적은 옷 보고 확정돼요.',
     addr: '서울 성북구 동소문로22길 29 1층', phone: '0507-1***-3090' },
-  { id: 's5', name: '스티크', x: 380, y: 770, years: 12, rating: 4.5, reviews: 203, lead: 2,
+  { id: 's5', name: '스티크', x: 380, y: 770, photo: 'img/kakao-s5.jpg', photoBy: '카카오맵 매장 사진', years: 12, rating: 4.5, reviews: 203, lead: 2,
     spec: ['pants', 'tee'], tags: ['가성비', '청바지', '당일 가능'], markup: { fit: -1000, repair: -500 },
     hours: [10, 21], closed: [], pickup: true, today: true, hue: 200,
     intro: '청바지 기장, 티셔츠 줄임 같은 기본 수선을 빠르고 싸게 해요.',
     addr: '서울 성북구 지봉로20길 74-1 1층', phone: '0507-1***-5528' },
-  { id: 's6', name: '옥화네옷수선', x: 300, y: 760, years: 18, rating: 4.3, reviews: 77, lead: 3,
+  { id: 's6', name: '옥화네옷수선', x: 300, y: 760, photo: 'img/kakao-s6.jpg', photoBy: '카카오맵 로드뷰', years: 18, rating: 4.3, reviews: 77, lead: 3,
     spec: ['shirt', 'tee'], tags: ['세탁 같이', '셔츠', '픽업 가능'], markup: { fit: 0, repair: 0 },
     hours: [8, 20], closed: [0], pickup: true, today: false, hue: 190, selfDelivery: { fee: 0, km: 1.5 },
     intro: '세탁소와 같이 해요. 셔츠는 세탁, 다림질까지 한 번에 맡기실 수 있어요.',
@@ -255,7 +256,7 @@ export const ORDER_STEPS = [
 ];
 
 // 실제 가게 이름 옆에 붙이는 안내. 지어낸 숫자가 그 가게 실제 정보처럼 읽히지 않게 함 (11/27 현도 결정)
-export const DEMO_NOTE = '가게 이름과 주소만 실제예요. 별점, 후기, 가격, 소개, 가게 그림은 수업 과제용 예시예요.';
+export const DEMO_NOTE = '가게 이름, 주소, 사진(카카오맵)은 실제예요. 별점, 후기, 가격, 소개는 수업 과제용 예시예요.';
 
 export const FEES = { pickup: 3000, ship: { normal: 3000, fast: 5000 }, bundleRate: 0.05 }; // 가게 직접 배달비는 SHOPS.selfDelivery.fee
 

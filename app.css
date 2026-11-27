@@ -748,3 +748,5 @@ table.mt.sz tr.on td{color:var(--tint);font-weight:700}
 .demo-note svg.lucide{flex:none;margin-top:1px}
 .shop-head .demo-note{margin-top:2px}
 .plist .opt .add{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
+/* 실제 가게 사진 출처 (카카오맵) */
+.hero-img .photo-by{position:absolute;right:10px;bottom:34px;z-index:2;background:rgba(0,0,0,.5);color:#fff;font-size:11px;font-weight:500;padding:3px 8px;border-radius:999px}

@@ -96,7 +96,7 @@ screen('shop', {
     return `<div class="float-bar" id="fb"><button class="ib" data-back aria-label="뒤로">${ic('chevron-left', 'ic-24')}</button><h1>${esc(s.name)}</h1>
       <button class="ib" data-like aria-label="좋아요" style="color:${isLiked(s.id) ? 'var(--chalk)' : 'var(--ink)'}">${ic('heart', 'ic-24')}</button></div>
     <main class="content flush" style="gap:0;padding-bottom:0" id="sc">
-      <div class="hero-img" style="margin-top:0">${shopHero(s)}</div>
+      <div class="hero-img" style="margin-top:0">${shopHero(s)}${s.photoBy ? `<span class="photo-by">사진 ${esc(s.photoBy)}</span>` : ''}</div>
       <section class="shop-head">
         <div class="row" style="gap:6px">${s.spec.map(c => `<span class="tag indigo">${catOf(c).name} 전문</span>`).join('')}${s.isNew ? '<span class="tag chalk">이번 주 입점</span>' : ''}</div>
         <h2>${esc(s.name)}</h2>
