@@ -1,7 +1,7 @@
 // 앱 상태. 보는 사람 브라우저(localStorage)에만 저장. 못 쓰면 메모리로만 돎
 import { SHOPS, ITEMS, OPTIONS, CAT_FIELDS, SAMPLE_MEASURE, AREAS, ORDER_STEPS, FEES, REVIEWS, shopOf, itemOf, catOf, pantsLenAtFloor, PANTS_PRESETS, SUB_PRESET } from './data.js';
 
-const KEY = 'otline-app-v4'; // 11/27 바지 기장 이름을 복숭아뼈 기준으로 바꾸며 v4 (옛 저장값의 원브레이크 채팅, 옛 프리셋 id 는 안 읽음)
+const KEY = 'otline-app-v5'; // 11/27 수선집 이름을 실제 가게로 바꾸며 v5 (옛 저장값에 남은 옛 가게 이름 알림, 채팅을 안 읽음). v4: 바지 기장 이름 복숭아뼈 기준
 const listeners = new Set();
 const iso = d => d.toISOString();
 const daysAgo = (n, h = 14, m = 0) => { const d = new Date(); d.setDate(d.getDate() - n); d.setHours(h, m, 0, 0); return iso(d); };
@@ -44,7 +44,7 @@ function seed() {
     myReviews: [],
     claims: [],
     alerts: [
-      { id: 'a1', t: daysAgo(0, 10, 3), icon: 'scissors', title: '수선이 시작됐어요', body: '한땀 수선실에서 검정 슬랙스를 수선하고 있어요.', to: 'order-o2', read: false },
+      { id: 'a1', t: daysAgo(0, 10, 3), icon: 'scissors', title: '수선이 시작됐어요', body: `${SHOPS[0].name}에서 검정 슬랙스를 수선하고 있어요.`, to: 'order-o2', read: false },
       { id: 'a2', t: daysAgo(1, 15, 20), icon: 'message-circle', title: '수선사 메시지', body: '슬랙스 잘 받았어요. 발뒤꿈치 기준 105cm로 작업할게요!', to: 'chat-o2', read: false },
       { id: 'a3', t: daysAgo(13, 9, 0), icon: 'star', title: '수선은 마음에 드셨나요?', body: '생지 청바지 후기를 남기면 다음 수선 때 1,000원 할인돼요.', to: 'review-o1', read: true },
     ],

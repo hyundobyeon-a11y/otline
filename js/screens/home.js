@@ -1,7 +1,8 @@
 import { screen, go, refresh } from '../router.js';
 import { ic, esc, stars, sheet, toast, appbar } from '../ui.js';
 import { state, save, area, distM, fmtDist, isLiked, toggleLike, startDraft, activeOrders, orderSteps, unreadAlerts, shopRating, isOpen } from '../store.js';
-import { SHOPS, AREAS, ITEMS, CATEGORIES, catOf, shopOf, won } from '../data.js';
+import { SHOPS, AREAS, ITEMS, CATEGORIES, DEMO_NOTE, catOf, shopOf, won } from '../data.js';
+export const demoNote = () => `<p class="demo-note">${ic('info', 'ic-16')}<span>${DEMO_NOTE}</span></p>`;
 import { catIcon, shopHero } from '../garments.js';
 import { createMap } from '../map.js';
 
@@ -80,6 +81,7 @@ screen('home', {
 
       <section class="sec">
         <div class="sec-h"><h2>내 주변 수선집</h2><span class="muted small">${esc(a.full)}</span></div>
+        ${demoNote()}
         <div class="mapbox" id="homeMap"></div>
         <div class="chips">
           ${[['dist', '거리순'], ['rating', '별점순'], ['review', '리뷰 많은 순']].map(([k, t]) => `<button class="chip" data-sort="${k}" aria-pressed="${homeSort === k}">${t}</button>`).join('')}
@@ -107,7 +109,7 @@ screen('home', {
   },
   mount(el) {
     const a = area();
-    const map = createMap(el.querySelector('#homeMap'), {
+    const map = createMap(el.querySelector('#homeMap'), { view: 900, // 실제 가게라 1km 안팎으로 퍼져 있어 넓게 보여줌
       me: a.me, shops: SHOPS.map(s => ({ id: s.id, x: s.x, y: s.y, name: s.name, isNew: s.isNew })),
       onPin: id => {
         const box = el.querySelector('#homeMap'); box.querySelector('.map-pop')?.remove();
@@ -155,7 +157,7 @@ screen('search', {
       q = inp.value.trim();
       if (!q) {
         res.innerHTML = `<section class="sec"><div class="sec-h"><h3>많이 찾는 수선</h3></div><div class="chips wrap">${['바지 기장', '허리 줄임', '소매 기장', '지퍼 교체', '원피스 기장', '안감 교체', '단추'].map(t => `<button class="chip" data-q="${t}">${t}</button>`).join('')}</div></section>
-          <section class="sec"><div class="sec-h"><h3>가까운 수선집</h3></div>${SHOPS.slice().sort((a, b) => distM(a) - distM(b)).slice(0, 3).map(s => shopRow(s)).join('')}</section>`;
+          <section class="sec"><div class="sec-h"><h3>가까운 수선집</h3></div>${demoNote()}${SHOPS.slice().sort((a, b) => distM(a) - distM(b)).slice(0, 3).map(s => shopRow(s)).join('')}</section>`;
         return;
       }
       const words = q.split(/\s+/);
@@ -165,7 +167,7 @@ screen('search', {
       for (const c of CATEGORIES) for (const it of ITEMS[c.id]) if (hit(c.name + ' ' + it.name) || hit(it.name)) items.push({ c, it });
       res.innerHTML = `${items.length ? `<section class="sec"><div class="sec-h"><h3>수선 항목</h3><span class="muted small">눌러서 바로 요청서 만들기</span></div>
         <div>${items.slice(0, 8).map(({ c, it }) => `<button class="res-row" data-item="${c.id}:${it.id}"><span class="ico"><span style="width:26px;height:26px;display:block;color:var(--indigo)">${catIcon(c.id)}</span></span><span class="grow"><b>${c.name} ${it.name}</b><br><span class="xs muted">${it.group === 'fit' ? 'AI 핏 미리보기 가능' : '사진으로 손상 부위 전달'}</span></span><span class="price">${won(it.price)}~</span></button>`).join('')}</div></section>` : ''}
-        <section class="sec"><div class="sec-h"><h3>수선집 ${shops.length}곳</h3></div>${shops.map(s => shopRow(s)).join('') || '<p class="small muted">이름이 맞는 수선집이 없어요.</p>'}</section>`;
+        <section class="sec"><div class="sec-h"><h3>수선집 ${shops.length}곳</h3></div>${shops.length ? demoNote() : ''}${shops.map(s => shopRow(s)).join('') || '<p class="small muted">이름이 맞는 수선집이 없어요.</p>'}</section>`;
     };
     inp.addEventListener('input', draw);
     res.addEventListener('click', e => {

@@ -743,3 +743,7 @@ table.mt.sz tr.on td{color:var(--tint);font-weight:700}
 .cta.stack .link{align-self:center;padding:8px 12px;font-size:14px}
 .notice.tap{border:0;width:100%;text-align:left;font:inherit;font-size:13.5px;align-items:center;color:var(--ink-2)}
 .tag svg.lucide{width:12px;height:12px}
+/* 실제 가게 이름 옆 안내 (11/27 현도: 이름, 주소만 실제) */
+.demo-note{display:flex;gap:8px;align-items:flex-start;margin:0;padding:9px 12px;border-radius:14px;background:var(--tape-50);color:var(--tape-text);font-size:12.5px;line-height:1.45;font-weight:500}
+.demo-note svg.lucide{flex:none;margin-top:1px}
+.shop-head .demo-note{margin-top:2px}

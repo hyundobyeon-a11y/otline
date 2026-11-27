@@ -6,6 +6,7 @@ import { SHOPS, ITEMS, CATEGORIES, FIELDS, FEES, REVIEW_TAGS, catOf, shopOf, won
 import { catIcon, shopHero, workSample } from '../garments.js';
 import { createMap } from '../map.js';
 import { ticket, billHtml } from './request.js';
+import { demoNote } from './home.js';
 
 const gTitle = g => g.name || g.sub || catOf(g.cat).name;
 // 가게 직접 배달 (수선 끝난 옷을 가게가 직접 가져다줌, 옷라인 배송과 따로)
@@ -50,6 +51,7 @@ screen('compare', {
       <div class="mapbox" id="cmpMap"></div>
       <div class="chips">${[['rec', '추천순'], ['dist', '거리순'], ['price', '가격순'], ['review', '리뷰 많은 순']].map(([k, t]) => `<button class="chip" data-sort="${k}" aria-pressed="${sort === k}">${t}</button>`).join('')}
         <button class="chip filter" data-f="pickup" aria-pressed="${!!filters.pickup}">픽업 가능</button><button class="chip filter" data-f="today" aria-pressed="${!!filters.today}">오늘 접수</button><button class="chip filter" data-f="spec" aria-pressed="${!!filters.spec}">전문 수선집만</button></div>
+      ${demoNote()}
       ${sort === 'rec' ? `<div class="sec-h"><h2>추천 수선집 3곳</h2><span class="muted xs">별점, 거리, 가격, 전문 분야로 골랐어요</span></div>` : ''}
       <div class="sec" id="cmpList">${top.map((x, i) => card(x, i, sort === 'rec')).join('') || '<div class="empty">조건에 맞는 수선집이 없어요</div>'}
       ${rest.length ? `<div class="sec-h" style="margin-top:8px"><h3>다른 수선집 ${rest.length}곳</h3></div>${rest.map(x => card(x)).join('')}` : ''}</div>
@@ -58,7 +60,7 @@ screen('compare', {
   mount(el) {
     const d = state.draft; if (!d) return;
     const list = rankShops(d.garments, sort, filters);
-    const map = createMap(el.querySelector('#cmpMap'), { me: area().me, showCount: false, view: 620,
+    const map = createMap(el.querySelector('#cmpMap'), { me: area().me, showCount: false, view: 900,
       shops: list.map(x => ({ id: x.s.id, x: x.s.x, y: x.s.y, name: x.s.name, isNew: x.s.isNew, label: won(quote(d.garments, x.s).total) })),
       onPin: id => { if (!id) return; const c = el.querySelector('#c-' + id); if (c) { c.scrollIntoView({ behavior: 'smooth', block: 'center' }); c.animate([{ boxShadow: 'inset 0 0 0 3px var(--tape)' }, { boxShadow: 'inset 0 0 0 0 transparent' }], { duration: 1400 }); } } });
     el.addEventListener('click', e => {
@@ -101,6 +103,7 @@ screen('shop', {
         <div class="dotsep">${stars(r.r, r.n)}<span>${fmtDist(distM(s))}</span><span>${s.lead === 1 ? '내일 완료' : `평균 ${s.lead}일`}</span></div>
         <div class="row small"><span class="${isOpen(s) ? 'open' : 'closed'}">${isOpen(s) ? '영업 중' : '영업 종료'}</span><span class="sub">${s.hours[0]}:00 ~ ${s.hours[1]}:00${s.closed.length ? `, ${s.closed.map(x => DAYS[x]).join(', ')}요일 휴무` : ', 연중무휴'}</span></div>
         <div class="row" style="flex-wrap:wrap;gap:4px">${s.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}${selfTag(s)}</div>
+        ${demoNote()}
       </section>
       <nav class="tabs" id="tabs">${[['info', '기본정보'], ['price', '가격표'], ['work', '작업 사례'], ['review', `리뷰 ${r.n}`]].map(([k, t], i) => `<button data-tabto="${k}" class="${i === 0 ? 'on' : ''}">${t}</button>`).join('')}</nav>
       <section class="panel" id="p-info">
